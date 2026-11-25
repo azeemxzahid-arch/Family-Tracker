@@ -1,0 +1,2365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Expenses &amp; Income Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f3f6f2;
+        --surface: #ffffff;
+        --surface-2: #eaf0ea;
+        --ink: #16211a;
+        --ink-soft: #43544a;
+        --muted: #68796e;
+        --line: #d8e0d8;
+        --green: #177245;
+        --green-dark: #0f5a35;
+        --green-tint: #e2f1e6;
+        --red: #bc3226;
+        --red-tint: #fbe7e4;
+        --amber: #a86a08;
+        --amber-tint: #faf0da;
+        --bar-track: #e3eae3;
+        --shadow: 0 1px 2px rgba(22, 33, 26, 0.06), 0 8px 24px rgba(22, 33, 26, 0.06);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e140f;
+          --surface: #17211a;
+          --surface-2: #1f2d23;
+          --ink: #e9f1ea;
+          --ink-soft: #c3d2c7;
+          --muted: #93a797;
+          --line: #2c3d31;
+          --green: #4cc07e;
+          --green-dark: #7cd6a4;
+          --green-tint: #1d3527;
+          --red: #f08a7d;
+          --red-tint: #3d2320;
+          --amber: #eebd6b;
+          --amber-tint: #3a2f18;
+          --bar-track: #2a3a2f;
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      button, select, input, textarea { font: inherit; color: inherit; }
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.75rem; }
+      :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; border-radius: 6px; }
+      [hidden] { display: none !important; }
+
+      .wrap { max-width: 1160px; margin: 0 auto; padding: 20px 16px 56px; }
+
+      /* ---------- Header ---------- */
+      header.top {
+        display: flex; flex-wrap: wrap; gap: 16px 24px;
+        align-items: flex-end; justify-content: space-between;
+        padding: 10px 0 18px;
+        border-bottom: 2px solid var(--ink);
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-weight: 700; font-size: clamp(1.7rem, 4.5vw, 2.4rem);
+        line-height: 1.08; margin: 0 0 6px; letter-spacing: -0.01em;
+      }
+      .lede { margin: 0; color: var(--ink-soft); max-width: 46ch; }
+      .who { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .who label { font-weight: 600; font-size: 0.9rem; color: var(--ink-soft); }
+      .who input, .who select {
+        border: 1px solid var(--line); background: var(--surface);
+        border-radius: 10px; padding: 8px 12px; min-width: 190px;
+      }
+      .month-nav { display: flex; align-items: center; gap: 8px; }
+      .month-nav button {
+        width: 44px; border: 1px solid var(--line); background: var(--surface);
+        border-radius: 10px; font-size: 1.15rem; line-height: 1; cursor: pointer;
+      }
+      .month-nav button:hover { background: var(--surface-2); }
+      .month-nav input {
+        border: 1px solid var(--line); background: var(--surface);
+        border-radius: 10px; padding: 8px 10px; font-weight: 600;
+      }
+      .month-name { font-family: "Source Serif 4", Georgia, serif; font-size: 1.25rem; font-weight: 700; min-width: 168px; text-align: center; }
+      .account-line { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; color: var(--ink-soft); font-size: 0.92rem; }
+      .account-line .whoami { font-weight: 600; }
+      .account-line button {
+        border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+        padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+      }
+      .account-line button:hover { background: var(--surface-2); }
+
+      /* ---------- Sign-in screens ---------- */
+      .auth-wrap { max-width: 520px; margin: 0 auto; padding: 32px 16px 56px; }
+      .auth-card {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 24px; box-shadow: var(--shadow);
+      }
+      .auth-card h1 { margin-bottom: 8px; }
+      .auth-card .lede { margin-bottom: 18px; }
+      .auth-switch { margin: 16px 0 0; color: var(--muted); font-size: 0.92rem; text-align: center; }
+      .auth-switch button, .link-btn {
+        border: 0; background: none; color: var(--green-dark); font-weight: 700; cursor: pointer;
+        padding: 4px 6px; min-height: 0; text-decoration: underline;
+      }
+      .auth-msg { font-size: 0.92rem; font-weight: 600; color: var(--green-dark); display: none; margin: 0 0 12px; }
+      .auth-msg.show { display: block; }
+      .auth-msg.err { color: var(--red); }
+
+      /* ---------- Alert ---------- */
+      .alert {
+        display: none; border: 1px solid var(--red); background: var(--red-tint);
+        color: var(--ink); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 18px;
+      }
+      .alert.show { display: block; }
+      .alert strong { color: var(--red); }
+      .alert ul { margin: 6px 0 0; padding-left: 20px; }
+
+      /* ---------- Summary ---------- */
+      .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+      .stat {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 16px; box-shadow: var(--shadow);
+      }
+      .stat .label { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+      .stat .value { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(1.45rem, 3.4vw, 1.9rem); font-weight: 700; line-height: 1.05; margin: 0; font-variant-numeric: tabular-nums; }
+      .stat .sub { margin: 6px 0 0; font-size: 0.88rem; color: var(--ink-soft); }
+      .stat.income .value { color: var(--green); }
+      .stat.expense .value { color: var(--red); }
+      .stat.over .value { color: var(--red); }
+      .meter { height: 8px; border-radius: 99px; background: var(--bar-track); margin-top: 10px; overflow: hidden; }
+      .meter > div { height: 100%; border-radius: 99px; background: var(--green); width: 0%; transition: width 0.35s ease; }
+      .meter > div.near { background: var(--amber); }
+      .meter > div.over { background: var(--red); }
+
+      /* ---------- Layout ---------- */
+      .layout { display: grid; grid-template-columns: 400px 1fr; gap: 18px; align-items: start; }
+      .col { display: grid; gap: 18px; }
+      .card {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 20px; box-shadow: var(--shadow);
+      }
+      .card h2 { font-family: "Source Serif 4", Georgia, serif; font-size: 1.3rem; font-weight: 700; margin: 0 0 4px; }
+      .card .hint { margin: 0 0 16px; color: var(--muted); font-size: 0.92rem; }
+
+      /* ---------- Form ---------- */
+      .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface-2); border-radius: 12px; padding: 6px; margin-bottom: 16px; }
+      .type-toggle button {
+        border: 0; border-radius: 8px; background: transparent; font-weight: 700; cursor: pointer; padding: 8px;
+      }
+      .type-toggle button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); }
+      .type-toggle button[data-type="expense"][aria-pressed="true"] { color: var(--red); }
+      .type-toggle button[data-type="income"][aria-pressed="true"] { color: var(--green); }
+      .field { margin-bottom: 14px; }
+      .field label { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; }
+      .field input, .field select {
+        width: 100%; border: 1px solid var(--line); background: var(--bg);
+        border-radius: 10px; padding: 9px 12px;
+      }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .form-error { display: none; color: var(--red); font-weight: 600; font-size: 0.92rem; margin: 0 0 12px; }
+      .form-error.show { display: block; }
+      .btn {
+        border: 0; border-radius: 10px; cursor: pointer; font-weight: 700;
+        padding: 10px 18px; min-height: 2.75rem;
+      }
+      .btn-primary { background: var(--green); color: #fff; width: 100%; font-size: 1.02rem; }
+      .btn-primary:hover { background: var(--green-dark); }
+      @media (prefers-color-scheme: dark) { .btn-primary { color: #0e140f; } .btn-primary:hover { color: #0e140f; } }
+      .btn-ghost { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+      .btn-ghost:hover { border-color: var(--muted); }
+      .btn-auto { width: auto; }
+      .btn-cancel { display: none; width: 100%; margin-top: 8px; }
+      .btn-cancel.show { display: block; }
+      .btn-danger { color: var(--red); }
+
+      /* ---------- Budgets ---------- */
+      .budget-list { display: grid; gap: 14px; }
+      .budget-item { border-top: 1px solid var(--line); padding-top: 12px; }
+      .budget-item:first-child { border-top: 0; padding-top: 0; }
+      .budget-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .budget-name { font-weight: 700; }
+      .chip { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+      .chip.ok { background: var(--green-tint); color: var(--green-dark); }
+      .chip.near { background: var(--amber-tint); color: var(--amber); }
+      .chip.over { background: var(--red-tint); color: var(--red); }
+      .chip.none { background: var(--surface-2); color: var(--muted); }
+      .budget-nums { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--ink-soft); font-size: 0.9rem; margin-top: 2px; font-variant-numeric: tabular-nums; }
+      .budget-nums .over-amt { color: var(--red); font-weight: 700; }
+      .budget-edit { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+      .budget-edit label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+      .budget-edit .money { position: relative; flex: 0 1 150px; }
+      .budget-edit .money span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+      .budget-edit input {
+        width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 8px;
+        padding: 7px 10px 7px 34px; min-height: 2.4rem; font-variant-numeric: tabular-nums;
+      }
+
+      /* ---------- Breakdown ---------- */
+      .break-row { display: grid; grid-template-columns: 130px 1fr 92px; gap: 12px; align-items: center; padding: 7px 0; }
+      .break-row .bname { font-weight: 600; font-size: 0.94rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .break-row .bamt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+      .break-track { height: 12px; background: var(--bar-track); border-radius: 99px; overflow: hidden; }
+      .break-fill { height: 100%; background: var(--green); border-radius: 99px; }
+      .break-fill.top { background: var(--green-dark); }
+      .empty { color: var(--muted); border: 1.5px dashed var(--line); border-radius: 10px; padding: 18px; text-align: center; margin: 0; }
+
+      /* ---------- Transactions ---------- */
+      .tx-tools { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
+      .tx-tools input, .tx-tools select {
+        border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 12px; width: 100%;
+      }
+      .tx-list { list-style: none; margin: 0; padding: 0; }
+      .tx {
+        display: grid; grid-template-columns: 1fr auto; gap: 2px 14px;
+        padding: 12px 0; border-top: 1px solid var(--line); align-items: start;
+      }
+      .tx:first-child { border-top: 0; }
+      .tx .desc { font-weight: 700; }
+      .tx .meta { color: var(--muted); font-size: 0.88rem; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+      .tx .cat { background: var(--surface-2); border-radius: 99px; padding: 1px 9px; font-weight: 600; color: var(--ink-soft); }
+      .tx .amt { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; font-size: 1.02rem; }
+      .tx .amt.in { color: var(--green); }
+      .tx .amt.out { color: var(--red); }
+      .tx .actions { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 6px; }
+      .tx .actions button {
+        border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+        padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+      }
+      .tx .actions button:hover { background: var(--surface-2); }
+      .tx .actions button.del { color: var(--red); }
+
+      /* ---------- Data row ---------- */
+      .data-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 18px; }
+      .data-row p { margin: 0; color: var(--muted); font-size: 0.9rem; flex: 1 1 220px; }
+      .file-label { display: inline-flex; align-items: center; cursor: pointer; }
+      .file-label input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+      .import-msg { width: 100%; font-size: 0.9rem; font-weight: 600; color: var(--green-dark); display: none; }
+      .import-msg.show { display: block; }
+      .import-msg.err { color: var(--red); }
+
+      /* ---------- View toggle, family & combined ---------- */
+      .view-bar { margin-bottom: 18px; }
+      .view-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 6px; max-width: 560px; }
+      .view-toggle button { border: 0; border-radius: 8px; background: transparent; font-weight: 700; cursor: pointer; padding: 10px 12px; }
+      .view-toggle button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); color: var(--green-dark); }
+      .view-note { margin: 8px 0 0; color: var(--muted); font-size: 0.9rem; }
+      .family-card { margin-bottom: 18px; border: 2px solid var(--green); }
+      .fam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      @media (max-width: 700px) { .fam-grid { grid-template-columns: 1fr; } }
+      .fam-box h3 { font-size: 1rem; margin: 0 0 4px; }
+      .fam-box .hint { margin-bottom: 10px; }
+      .fam-join { display: flex; gap: 8px; flex-wrap: wrap; }
+      .fam-join input {
+        border: 1px solid var(--line); background: var(--bg); border-radius: 10px;
+        padding: 9px 12px; flex: 1 1 160px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
+      }
+      .fam-code {
+        font-family: "Source Serif 4", Georgia, serif; font-size: 2rem; font-weight: 700;
+        letter-spacing: 0.14em; background: var(--surface-2); border: 1px dashed var(--green);
+        border-radius: 10px; padding: 10px 16px; text-align: center; margin: 0 0 10px;
+      }
+      .fam-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+      .fam-actions .btn { width: auto; }
+      .member-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+      .member-list { display: grid; gap: 10px; margin-bottom: 6px; }
+      .member-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-items: start; }
+      .member-row .mname { font-weight: 800; }
+      .member-row .mtag { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--green-tint); color: var(--green-dark); border-radius: 99px; padding: 2px 9px; margin-left: 8px; vertical-align: 2px; }
+      .member-row .mnums { color: var(--ink-soft); font-size: 0.92rem; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 2px 14px; }
+      .member-row .mnums b.in { color: var(--green); } .member-row .mnums b.out { color: var(--red); }
+      .member-row button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer; color: var(--red); }
+      .owner-chip { background: var(--green-tint); color: var(--green-dark); border-radius: 99px; padding: 1px 9px; font-weight: 700; }
+      .combined-msg { font-size: 0.9rem; font-weight: 600; color: var(--green-dark); display: none; margin: 0 0 10px; }
+      .combined-msg.show { display: block; } .combined-msg.err { color: var(--red); }
+      .rates-area { border-top: 1px solid var(--line); padding-top: 14px; margin-bottom: 14px; }
+      .rates-area h3 { font-size: 1rem; margin: 0 0 4px; }
+      .rate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+      .rate-row label { font-weight: 600; font-size: 0.92rem; }
+      .rate-row input {
+        border: 1px solid var(--line); background: var(--bg); border-radius: 8px;
+        padding: 7px 10px; width: 130px; min-height: 2.4rem; font-variant-numeric: tabular-nums;
+      }
+      .rate-row .rate-cur { font-weight: 700; color: var(--ink-soft); }
+      .rate-note { background: var(--amber-tint); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; margin: 8px 0 0; }
+
+      /* ---------- Recurring, categories, compare, save status ---------- */
+      .check-field { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+      .check-field input { width: 22px; height: 22px; min-height: 22px; margin: 1px 0 0; accent-color: var(--green); flex: 0 0 auto; }
+      .check-field label { font-weight: 600; font-size: 0.95rem; }
+      .check-field .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+      .recur-note { display: none; background: var(--amber-tint); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; margin: 0 0 14px; }
+      .recur-note.show { display: block; }
+      .chip.monthly { background: var(--green-tint); color: var(--green-dark); text-transform: none; letter-spacing: 0; font-size: 0.78rem; }
+      .recur-list { display: grid; gap: 10px; }
+      .recur-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-items: start; }
+      .recur-row .rname { font-weight: 700; }
+      .recur-row .rmeta { color: var(--muted); font-size: 0.88rem; }
+      .recur-row .ramt { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+      .recur-row .ramt.in { color: var(--green); } .recur-row .ramt.out { color: var(--red); }
+      .recur-row button, .cat-list button {
+        border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+        padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer; color: var(--red);
+      }
+      .recur-row button:hover, .cat-list button:hover:not(:disabled) { background: var(--surface-2); }
+      .cat-list button:disabled { color: var(--muted); cursor: not-allowed; }
+      .cat-manage { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
+      .cat-manage h3 { font-size: 1rem; margin: 0 0 4px; }
+      .cat-add { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; margin-top: 10px; }
+      .cat-add input, .cat-add select {
+        border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 12px; width: 100%;
+      }
+      .cat-add .btn { padding: 10px 16px; }
+      .cat-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+      .cat-list li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+      .cat-list .cname { font-weight: 600; }
+      .cat-list .ctag { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 2px 9px; }
+      .cat-list .cnote { color: var(--muted); font-size: 0.85rem; width: 100%; }
+      .cat-msg { font-size: 0.9rem; font-weight: 600; color: var(--green-dark); display: none; margin: 10px 0 0; }
+      .cat-msg.show { display: block; } .cat-msg.err { color: var(--red); }
+      .compare-card { margin-bottom: 18px; }
+      .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+      .compare-item .clabel { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
+      .compare-item .cval { font-weight: 700; font-size: 1.02rem; margin: 0; font-variant-numeric: tabular-nums; }
+      .compare-item .cval.up-bad { color: var(--red); } .compare-item .cval.up-good { color: var(--green); }
+      .compare-item .cval.down-bad { color: var(--red); } .compare-item .cval.down-good { color: var(--green); }
+      .compare-item .csub { color: var(--muted); font-size: 0.88rem; margin: 2px 0 0; }
+      .trend { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; }
+      .trend-col { display: grid; gap: 6px; justify-items: center; }
+      .trend-bars { display: flex; gap: 4px; align-items: flex-end; height: 72px; }
+      .trend-bar { width: 16px; border-radius: 4px 4px 0 0; min-height: 2px; }
+      .trend-bar.inc { background: var(--green); }
+      .trend-bar.exp { background: var(--red); opacity: 0.75; }
+      .trend-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-align: center; }
+      .trend-legend { display: flex; gap: 18px; color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
+      .trend-legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+      .trend-legend .sw.inc { background: var(--green); } .trend-legend .sw.exp { background: var(--red); opacity: 0.75; }
+      .save-status { color: var(--muted); font-size: 0.9rem; margin: 0 0 10px; }
+      .backup-nudge {
+        display: none; border: 1px solid var(--amber); background: var(--amber-tint); color: var(--ink);
+        border-radius: 10px; padding: 10px 14px; margin: 0 0 14px; font-size: 0.92rem;
+        align-items: center; gap: 10px; flex-wrap: wrap;
+      }
+      .backup-nudge.show { display: flex; }
+      .backup-nudge span { flex: 1 1 240px; }
+      .backup-nudge button {
+        border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+        padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+      }
+      @media (max-width: 640px) {
+        .compare-grid { grid-template-columns: 1fr; }
+        .cat-add { grid-template-columns: 1fr; }
+      }
+
+      footer { margin-top: 28px; color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 14px; }
+
+      @media (max-width: 900px) {
+        .summary { grid-template-columns: repeat(2, 1fr); }
+        .layout { grid-template-columns: 1fr; }
+        .month-name { min-width: 0; }
+        header.top { align-items: flex-start; flex-direction: column; }
+      }
+      @media (max-width: 460px) {
+        .field-row { grid-template-columns: 1fr; }
+        .tx-tools { grid-template-columns: 1fr; }
+        .break-row { grid-template-columns: 104px 1fr 78px; }
+        .card { padding: 16px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .meter > div { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ======================= Signed-out / sign-in ======================= -->
+    <div class="auth-wrap" id="authView" hidden>
+      <div class="auth-card">
+        <h1>Expenses &amp; Income Tracker</h1>
+        <p class="lede">Your family's money tracker. Sign in to see your entries on any phone or computer — everything syncs to your account.</p>
+        <p class="auth-msg" id="authMsg" role="status"></p>
+
+        <form id="signInForm" novalidate>
+          <div class="field">
+            <label for="siEmail">Email</label>
+            <input type="email" id="siEmail" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+          <div class="field">
+            <label for="siPassword">Password</label>
+            <input type="password" id="siPassword" autocomplete="current-password" placeholder="Your password" required />
+          </div>
+          <p class="form-error" id="siError"></p>
+          <button type="submit" class="btn btn-primary" id="siBtn">Sign in</button>
+          <p class="auth-switch">Forgot your password?
+            <button type="button" class="link-btn" id="forgotBtn">Email me a reset link</button>
+          </p>
+          <p class="auth-switch">New here?
+            <button type="button" class="link-btn" id="showCreateBtn">Create an account</button>
+          </p>
+        </form>
+
+        <form id="createForm" novalidate hidden>
+          <div class="field">
+            <label for="caName">Your name</label>
+            <input type="text" id="caName" autocomplete="name" placeholder="e.g. Azeem" maxlength="60" required />
+          </div>
+          <div class="field">
+            <label for="caEmail">Email</label>
+            <input type="email" id="caEmail" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+          <div class="field">
+            <label for="caPassword">Password</label>
+            <input type="password" id="caPassword" autocomplete="new-password" placeholder="At least 6 characters" required />
+          </div>
+          <div class="field">
+            <label for="caCurrency">Currency you'll track in</label>
+            <select id="caCurrency"></select>
+          </div>
+          <p class="form-error" id="caError"></p>
+          <button type="submit" class="btn btn-primary" id="caBtn">Create my account</button>
+          <p class="auth-switch">Already have an account?
+            <button type="button" class="link-btn" id="showSignInBtn">Sign in</button>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================= First-run profile setup ======================= -->
+    <div class="auth-wrap" id="setupView" hidden>
+      <div class="auth-card">
+        <h1>One last step</h1>
+        <p class="lede">Tell the tracker who you are and which currency you'll track in. You can change the currency later.</p>
+        <form id="setupForm" novalidate>
+          <div class="field">
+            <label for="suName">Your name</label>
+            <input type="text" id="suName" autocomplete="name" placeholder="e.g. Azeem" maxlength="60" required />
+          </div>
+          <div class="field">
+            <label for="suCurrency">Currency you'll track in</label>
+            <select id="suCurrency"></select>
+          </div>
+          <p class="form-error" id="suError"></p>
+          <button type="submit" class="btn btn-primary" id="suBtn">Start tracking</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================= The tracker ======================= -->
+    <div class="wrap" id="appView" hidden>
+      <header class="top">
+        <div>
+          <h1>Expenses &amp; Income Tracker</h1>
+          <p class="lede">Log what comes in and what goes out, set a monthly budget for each kind of spending, and see at a glance when a category goes over. Your entries sync across your devices.</p>
+          <div class="account-line">
+            <span class="whoami" id="whoLine">Signed in</span>
+            <button type="button" id="signOutBtn">Sign out</button>
+          </div>
+          <div class="who">
+            <label for="personName">Tracking for</label>
+            <input id="personName" type="text" placeholder="Your name" autocomplete="name" />
+            <label for="currencySelect">Currency</label>
+            <select id="currencySelect" aria-label="Currency"></select>
+          </div>
+        </div>
+        <div>
+          <div class="month-nav" aria-label="Choose month">
+            <button type="button" id="prevMonth" aria-label="Previous month">‹</button>
+            <div class="month-name" id="monthName">—</div>
+            <button type="button" id="nextMonth" aria-label="Next month">›</button>
+          </div>
+          <input type="month" id="monthPicker" aria-label="Pick a month" style="margin-top:8px; width:100%;" />
+        </div>
+      </header>
+
+      <div class="view-bar">
+        <div class="view-toggle" role="group" aria-label="Choose view">
+          <button type="button" id="viewPersonal" aria-pressed="true">Just me</button>
+          <button type="button" id="viewCombined" aria-pressed="false" hidden>Combined — whole family</button>
+        </div>
+        <p class="view-note" id="viewNote">Showing only your own entries.</p>
+      </div>
+
+      <section class="card family-card" id="familyPanel" aria-labelledby="familyTitle">
+        <h2 id="familyTitle">Family</h2>
+        <p class="hint" id="familyHint">Link up with your family so one person can see everyone's spending together.</p>
+        <p class="combined-msg" id="familyMsg" role="status"></p>
+
+        <div id="famNone">
+          <div class="fam-grid">
+            <div class="fam-box">
+              <h3>Start a family</h3>
+              <p class="hint">Create a family and you'll get an invite code. Share the code with your family — when they join with it, you'll be able to see everyone's entries together in Combined view. Only you get the combined view.</p>
+              <div class="field" style="margin-bottom:10px;">
+                <label for="famName">Family name</label>
+                <input type="text" id="famName" placeholder="e.g. Zahid family" maxlength="60" />
+              </div>
+              <button type="button" class="btn btn-primary btn-auto" id="famCreateBtn">Create a family</button>
+            </div>
+            <div class="fam-box">
+              <h3>Join a family</h3>
+              <p class="hint">Has someone already started a family? Type the invite code they gave you. The person who created the family will be able to see your entries in their combined view.</p>
+              <div class="fam-join">
+                <input type="text" id="joinCode" placeholder="Invite code" maxlength="10" aria-label="Invite code" />
+                <button type="button" class="btn btn-primary btn-auto" id="joinBtn">Join family</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="famOwner" hidden>
+          <p class="hint">Your family's invite code — share it only with people you want in the family. Anyone with this code can join.</p>
+          <p class="fam-code" id="ownerCode">——————</p>
+          <div class="fam-actions">
+            <button type="button" class="btn btn-ghost" id="copyCodeBtn">Copy code</button>
+            <button type="button" class="btn btn-ghost" id="newCodeBtn">Get a new code</button>
+            <button type="button" class="btn btn-ghost btn-danger" id="deleteFamilyBtn">Delete family</button>
+          </div>
+          <h3 style="font-size:1rem; margin:14px 0 8px;">Family members</h3>
+          <div class="member-list" id="ownerMemberList"></div>
+          <div id="combinedInfo" hidden>
+            <div class="rates-area" id="ratesArea" hidden>
+              <h3>Exchange rates</h3>
+              <p class="hint" style="margin-bottom:10px;">Someone in the family tracks in a different currency. Set the rate here so their entries can be added into the family totals in your currency.</p>
+              <div id="rateFields"></div>
+              <div id="rateNotes"></div>
+            </div>
+            <p class="combined-msg" id="combinedMsg" role="status"></p>
+            <div class="member-list" id="memberList"></div>
+            <p class="empty" id="combinedEmpty">No family members yet — right now Combined view shows just you. Share your invite code above to add your family.</p>
+          </div>
+        </div>
+
+        <div id="famMember" hidden>
+          <p class="hint" id="memberInfoText">You're in a family.</p>
+          <div class="fam-actions">
+            <button type="button" class="btn btn-ghost btn-danger" id="leaveFamilyBtn">Leave family</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="alert" id="overAlert" role="alert"></div>
+
+      <section class="summary" aria-label="Month summary">
+        <div class="stat income">
+          <p class="label">Income</p>
+          <p class="value" id="sumIncome">$0.00</p>
+          <p class="sub" id="sumIncomeSub">No income logged yet</p>
+        </div>
+        <div class="stat expense">
+          <p class="label">Expenses</p>
+          <p class="value" id="sumExpenses">$0.00</p>
+          <p class="sub" id="sumExpensesSub">No expenses logged yet</p>
+        </div>
+        <div class="stat" id="netStat">
+          <p class="label">Left over</p>
+          <p class="value" id="sumNet">$0.00</p>
+          <p class="sub">Income minus expenses</p>
+        </div>
+        <div class="stat" id="budgetStat">
+          <p class="label">Budget used</p>
+          <p class="value" id="sumBudget">$0.00</p>
+          <p class="sub" id="sumBudgetSub">Set budgets below to track against them</p>
+          <div class="meter"><div id="budgetMeter"></div></div>
+        </div>
+      </section>
+
+      <section class="card compare-card" aria-labelledby="compareTitle">
+        <h2 id="compareTitle">Compared with last month</h2>
+        <p class="hint" id="compareHint">How this month stacks up against the month before it.</p>
+        <div class="compare-grid">
+          <div class="compare-item">
+            <p class="clabel">Income</p>
+            <p class="cval" id="cmpIncome">—</p>
+            <p class="csub" id="cmpIncomeSub"></p>
+          </div>
+          <div class="compare-item">
+            <p class="clabel">Expenses</p>
+            <p class="cval" id="cmpExpenses">—</p>
+            <p class="csub" id="cmpExpensesSub"></p>
+          </div>
+          <div class="compare-item">
+            <p class="clabel">Left over</p>
+            <p class="cval" id="cmpNet">—</p>
+            <p class="csub" id="cmpNetSub"></p>
+          </div>
+        </div>
+        <h3 style="font-size:1rem; margin:0 0 8px;">The last 6 months</h3>
+        <p class="trend-legend"><span><span class="sw inc"></span>Income</span><span><span class="sw exp"></span>Expenses</span></p>
+        <div class="trend" id="trendBars"></div>
+      </section>
+
+      <div class="layout">
+        <div class="col">
+          <section class="card" id="addCard" aria-labelledby="addTitle">
+            <h2 id="addTitle">Add an entry</h2>
+            <p class="hint" id="addHint">Pick income or expense, then fill in the details.</p>
+            <div class="type-toggle" role="group" aria-label="Entry type">
+              <button type="button" id="typeExpense" data-type="expense" aria-pressed="true">− Expense</button>
+              <button type="button" id="typeIncome" data-type="income" aria-pressed="false">+ Income</button>
+            </div>
+            <form id="entryForm" novalidate>
+              <div class="field-row">
+                <div class="field">
+                  <label for="entryDate">Date</label>
+                  <input type="date" id="entryDate" required />
+                </div>
+                <div class="field">
+                  <label for="entryAmount" id="amountLabel">Amount ($)</label>
+                  <input type="number" id="entryAmount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="entryCategory">Category</label>
+                <select id="entryCategory"></select>
+              </div>
+              <div class="field">
+                <label for="entryDesc">Description</label>
+                <input type="text" id="entryDesc" placeholder="e.g. Weekly groceries at FreshCo" maxlength="90" />
+              </div>
+              <div class="check-field">
+                <input type="checkbox" id="entryRecurring" />
+                <label for="entryRecurring">Repeats monthly
+                  <span class="sub">For things like salary, rent or a subscription — added on the same day every month, so you only type it once.</span>
+                </label>
+              </div>
+              <p class="recur-note" id="recurNote">This entry repeats monthly. If you save changes here, they apply to this month only — the monthly entry itself stays as it was.</p>
+              <p class="form-error" id="formError"></p>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Add expense</button>
+              <button type="button" class="btn btn-ghost btn-cancel" id="cancelEdit">Cancel editing</button>
+            </form>
+          </section>
+
+          <section class="card" id="recurringCard" aria-labelledby="recurTitle" hidden>
+            <h2 id="recurTitle">Repeats every month</h2>
+            <p class="hint">These entries add themselves each month. Stop one here and it won't be added again — entries already added stay in your list.</p>
+            <div class="recur-list" id="recurringList"></div>
+          </section>
+
+          <section class="card" aria-labelledby="budgetTitle">
+            <h2 id="budgetTitle">Monthly budgets</h2>
+            <p class="hint" id="budgetHint">Set what you want to spend per category each month. Bars turn amber at 80% and red when you go over.</p>
+            <div class="budget-list" id="budgetList"></div>
+            <div class="cat-manage">
+              <h3>Your own categories</h3>
+              <p class="hint" style="margin-bottom:0;">Don't see a category that fits? Add your own — it'll show up in the entry form, the budgets above and the breakdown.</p>
+              <div class="cat-add">
+                <input type="text" id="catName" placeholder="e.g. Education" maxlength="40" aria-label="New category name" />
+                <select id="catType" aria-label="New category kind">
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                </select>
+                <button type="button" class="btn btn-ghost" id="catAddBtn">Add category</button>
+              </div>
+              <p class="cat-msg" id="catMsg" role="status"></p>
+              <ul class="cat-list" id="customCatList"></ul>
+            </div>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card" aria-labelledby="breakTitle">
+            <h2 id="breakTitle">Where the money went</h2>
+            <p class="hint" id="breakHint">Spending by category for the selected month.</p>
+            <div id="breakdown"></div>
+          </section>
+
+          <section class="card" aria-labelledby="txTitle">
+            <h2 id="txTitle">Entries</h2>
+            <p class="hint" id="txHint">Everything logged for the selected month, newest first.</p>
+            <div class="tx-tools">
+              <input type="search" id="txSearch" placeholder="Search entries…" aria-label="Search entries" />
+              <select id="txFilter" aria-label="Filter entries">
+                <option value="all">All entries</option>
+                <option value="income">Income only</option>
+                <option value="expense">Expenses only</option>
+              </select>
+            </div>
+            <ul class="tx-list" id="txList"></ul>
+            <p class="empty" id="txEmpty">No entries yet for this month.<br />Add your first income or expense using the form.</p>
+          </section>
+        </div>
+      </div>
+
+      <p class="save-status" id="saveStatus" role="status"></p>
+      <div class="backup-nudge" id="backupNudge">
+        <span id="backupNudgeText"></span>
+        <button type="button" id="nudgeDismiss">Not now</button>
+      </div>
+
+      <div class="data-row">
+        <p>Your entries are saved to your account and sync across your devices. Export a backup file any time to keep your own copy, or import a backup from the older file version of this tracker — your history comes with you.</p>
+        <button type="button" class="btn btn-ghost" id="exportBtn">Export backup</button>
+        <label class="btn btn-ghost file-label">Import backup
+          <input type="file" id="importFile" accept=".json,.csv,application/json,text/csv" />
+        </label>
+        <button type="button" class="btn btn-ghost" id="csvBtn">Download CSV</button>
+        <p class="import-msg" id="importMsg" role="status"></p>
+      </div>
+
+      <footer>Amounts are shown in the currency picked at the top of the page. Budgets apply to every month; entries belong to the month of their date.</footer>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      (function () {
+        "use strict";
+
+        // ---------- Firebase setup ----------
+        var firebaseConfig = {
+          apiKey: "AIzaSyBUFOiwpHDbHpATfrdhkj5BKxDUlsKknsc",
+          authDomain: "family-tracker-db4f5.firebaseapp.com",
+          projectId: "family-tracker-db4f5",
+          storageBucket: "family-tracker-db4f5.firebasestorage.app",
+          messagingSenderId: "196269884916",
+          appId: "1:196269884916:web:7de1ad28e5ffdf2c1265a1"
+        };
+        if (typeof firebase === "undefined") {
+          document.getElementById("authView").hidden = false;
+          var noFb = document.getElementById("authMsg");
+          noFb.textContent = "The tracker couldn't load its sign-in service. Check your internet connection and reload the page.";
+          noFb.className = "auth-msg show err";
+          return;
+        }
+        firebase.initializeApp(firebaseConfig);
+        var auth = firebase.auth();
+        var db = firebase.firestore();
+        // Keep a copy on this device so the tracker still opens and works offline;
+        // anything added offline syncs on its own when the connection comes back.
+        var persistenceReady = db.enablePersistence({ synchronizeTabs: true }).catch(function () { /* another tab or browser without support — the tracker still works online */ });
+
+        var EXPENSE_CATS = [
+          "Housing", "Groceries", "Dining Out", "Transport", "Phone & Internet",
+          "Utilities", "Subscriptions", "Health", "Shopping", "Entertainment",
+          "Personal Care", "Other"
+        ];
+        var INCOME_CATS = ["Salary", "Freelance / Side Income", "Benefits", "Interest", "Other Income"];
+
+        // ---------- Currencies ----------
+        var CURR = {
+          CAD: { sym: "$", name: "Canadian dollar" },
+          PLN: { sym: "zł", name: "Polish złoty" },
+          USD: { sym: "$", name: "US dollar" },
+          EUR: { sym: "€", name: "euro" },
+          GBP: { sym: "£", name: "British pound" },
+          PKR: { sym: "₨", name: "Pakistani rupee" }
+        };
+        function validCurrency(code) { return typeof code === "string" && !!CURR[code]; }
+        var fmt = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
+        function setFmt() { fmt = new Intl.NumberFormat("en-CA", { style: "currency", currency: state.currency }); }
+        var fmtCache = {};
+        function fmtFor(code) {
+          if (!fmtCache[code]) fmtCache[code] = new Intl.NumberFormat("en-CA", { style: "currency", currency: code });
+          return fmtCache[code];
+        }
+        function convAmt(amount, rate) { return Math.round(amount * rate * 100) / 100; }
+
+        var today = new Date();
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+        function monthKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
+        function todayStr() { return today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate()); }
+        function monthShiftKey(key, delta) {
+          var p = key.split("-");
+          var d = new Date(Number(p[0]), Number(p[1]) - 1 + delta, 1);
+          return monthKey(d);
+        }
+        function daysInMonth(key) {
+          var p = key.split("-");
+          return new Date(Number(p[0]), Number(p[1]), 0).getDate();
+        }
+        function monthLabel(key) {
+          var parts = key.split("-");
+          var d = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+          return d.toLocaleDateString("en-CA", { month: "long", year: "numeric" });
+        }
+        function prettyDate(str) {
+          var p = str.split("-");
+          var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+          return d.toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" });
+        }
+        function esc(s) {
+          return String(s == null ? "" : s)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        // ---------- App state (mirrors the profile + cloud data) ----------
+        var me = null;            // Firebase user
+        var profile = null;       // users/{uid} data
+        var profileExists = false;
+        var myEntries = [];       // my entries, local shape {id, type, date, category, desc, amount, recurId, createdAt}
+        var myRecurring = [];     // my ACTIVE templates {id, type, day, category, desc, amount, startMonth, exceptions[]}
+        var familyDoc = null;     // families/{familyId} data, when in a family
+        var familyMirrors = {};   // uid -> families/{fid}/members/{uid} data (owner's combined view)
+        var familyEntries = [];   // all entries with my familyId (owner's combined view)
+        var state = {
+          month: monthKey(today),
+          name: "",
+          currency: "CAD",
+          budgets: {},
+          customExpenseCats: [],
+          customIncomeCats: [],
+          rates: {},
+          lastExportAt: 0
+        };
+        EXPENSE_CATS.forEach(function (c) { state.budgets[c] = 0; });
+        var formType = "expense";
+        var editingId = null;
+        var viewMode = "personal"; // "personal" | "combined" (combined is owner-only)
+        var unsubs = [];           // active Firestore listeners, cleared on sign-out
+        var cleaningFamily = false;
+
+        function expenseCats() { return EXPENSE_CATS.concat(state.customExpenseCats); }
+        function incomeCats() { return INCOME_CATS.concat(state.customIncomeCats); }
+        function isOwner() { return !!(profile && profile.isFamilyOwner && profile.familyId && familyDoc && familyDoc.ownerUid === me.uid); }
+        function isCombined() { return viewMode === "combined" && isOwner(); }
+
+        // The family members (everyone except me) in the shape the render code uses:
+        // {uid, name, currency, budgets, customExpenseCats, customIncomeCats, transactions}
+        var family = [];
+        function rebuildFamily() {
+          family = [];
+          if (!profile || !profile.familyId) return;
+          var byUid = {};
+          familyEntries.forEach(function (t) {
+            if (t.ownerUid === me.uid) return;
+            if (!byUid[t.ownerUid]) byUid[t.ownerUid] = [];
+            byUid[t.ownerUid].push(t);
+          });
+          var uids = {};
+          Object.keys(familyMirrors).forEach(function (u) { if (u !== me.uid) uids[u] = true; });
+          Object.keys(byUid).forEach(function (u) { uids[u] = true; });
+          if (familyDoc && familyDoc.memberUids) familyDoc.memberUids.forEach(function (u) { if (u !== me.uid) uids[u] = true; });
+          Object.keys(uids).forEach(function (u) {
+            var mir = familyMirrors[u] || {};
+            var budgets = {};
+            EXPENSE_CATS.forEach(function (c) { budgets[c] = 0; });
+            (mir.customExpenseCats || []).forEach(function (c) { budgets[c] = 0; });
+            if (mir.budgets) for (var k in mir.budgets) { var v = parseFloat(mir.budgets[k]); budgets[k] = isNaN(v) || v < 0 ? 0 : v; }
+            family.push({
+              uid: u,
+              name: mir.name || "Family member",
+              currency: validCurrency(mir.currency) ? mir.currency : "CAD",
+              budgets: budgets,
+              customExpenseCats: mir.customExpenseCats || [],
+              customIncomeCats: mir.customIncomeCats || [],
+              transactions: byUid[u] || []
+            });
+          });
+          family.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+        }
+        function activeExpenseCats() {
+          var cats = expenseCats().slice();
+          if (isCombined()) family.forEach(function (m) {
+            (m.customExpenseCats || []).forEach(function (c) { if (cats.indexOf(c) === -1) cats.push(c); });
+          });
+          return cats;
+        }
+
+        // ---------- Element refs ----------
+        function $(id) { return document.getElementById(id); }
+        var els = {
+          authView: $("authView"), setupView: $("setupView"), appView: $("appView"),
+          authMsg: $("authMsg"),
+          signInForm: $("signInForm"), siEmail: $("siEmail"), siPassword: $("siPassword"), siError: $("siError"),
+          createForm: $("createForm"), caName: $("caName"), caEmail: $("caEmail"), caPassword: $("caPassword"),
+          caCurrency: $("caCurrency"), caError: $("caError"),
+          setupForm: $("setupForm"), suName: $("suName"), suCurrency: $("suCurrency"), suError: $("suError"),
+          whoLine: $("whoLine"), personName: $("personName"), currencySelect: $("currencySelect"),
+          amountLabel: $("amountLabel"), monthName: $("monthName"), monthPicker: $("monthPicker"),
+          overAlert: $("overAlert"),
+          sumIncome: $("sumIncome"), sumIncomeSub: $("sumIncomeSub"),
+          sumExpenses: $("sumExpenses"), sumExpensesSub: $("sumExpensesSub"),
+          sumNet: $("sumNet"), netStat: $("netStat"),
+          sumBudget: $("sumBudget"), sumBudgetSub: $("sumBudgetSub"), budgetMeter: $("budgetMeter"), budgetStat: $("budgetStat"),
+          typeExpense: $("typeExpense"), typeIncome: $("typeIncome"),
+          form: $("entryForm"), entryDate: $("entryDate"), entryAmount: $("entryAmount"),
+          entryCategory: $("entryCategory"), entryDesc: $("entryDesc"),
+          formError: $("formError"), submitBtn: $("submitBtn"), cancelEdit: $("cancelEdit"),
+          budgetList: $("budgetList"), breakdown: $("breakdown"),
+          txList: $("txList"), txEmpty: $("txEmpty"), txSearch: $("txSearch"), txFilter: $("txFilter"),
+          importMsg: $("importMsg"),
+          viewPersonal: $("viewPersonal"), viewCombined: $("viewCombined"), viewNote: $("viewNote"),
+          familyHint: $("familyHint"), familyMsg: $("familyMsg"),
+          famNone: $("famNone"), famName: $("famName"), joinCode: $("joinCode"),
+          famOwner: $("famOwner"), ownerCode: $("ownerCode"), ownerMemberList: $("ownerMemberList"),
+          combinedInfo: $("combinedInfo"), ratesArea: $("ratesArea"), rateFields: $("rateFields"), rateNotes: $("rateNotes"),
+          combinedMsg: $("combinedMsg"), memberList: $("memberList"), combinedEmpty: $("combinedEmpty"),
+          famMember: $("famMember"), memberInfoText: $("memberInfoText"),
+          addHint: $("addHint"), budgetHint: $("budgetHint"), breakHint: $("breakHint"), txHint: $("txHint"),
+          entryRecurring: $("entryRecurring"), recurNote: $("recurNote"),
+          recurringCard: $("recurringCard"), recurringList: $("recurringList"),
+          catName: $("catName"), catType: $("catType"), catAddBtn: $("catAddBtn"),
+          catMsg: $("catMsg"), customCatList: $("customCatList"),
+          compareHint: $("compareHint"),
+          cmpIncome: $("cmpIncome"), cmpIncomeSub: $("cmpIncomeSub"),
+          cmpExpenses: $("cmpExpenses"), cmpExpensesSub: $("cmpExpensesSub"),
+          cmpNet: $("cmpNet"), cmpNetSub: $("cmpNetSub"),
+          trendBars: $("trendBars"),
+          saveStatus: $("saveStatus"), backupNudge: $("backupNudge"),
+          backupNudgeText: $("backupNudgeText"), nudgeDismiss: $("nudgeDismiss")
+        };
+        els.entryDate.value = todayStr();
+        els.monthPicker.value = state.month;
+
+        // Fill the three currency selects from the one list.
+        function currencyOptions(sel, selected) {
+          sel.innerHTML = Object.keys(CURR).map(function (code) {
+            return '<option value="' + code + '"' + (code === selected ? " selected" : "") + ">" + code + " — " + CURR[code].sym + " (" + CURR[code].name + ")</option>";
+          }).join("");
+        }
+        currencyOptions(els.caCurrency, "CAD");
+        currencyOptions(els.suCurrency, "CAD");
+        currencyOptions(els.currencySelect, "CAD");
+
+        // ---------- Sync status ----------
+        var lastSyncAt = 0;
+        function setSyncStatus(snap) {
+          if (!me) return;
+          if (!navigator.onLine) {
+            els.saveStatus.textContent = "You're offline — new entries are kept on this device and will sync when you're back online.";
+            return;
+          }
+          if (snap && snap.metadata && snap.metadata.hasPendingWrites) {
+            els.saveStatus.textContent = "Saving…";
+            return;
+          }
+          lastSyncAt = Date.now();
+          var t = new Date(lastSyncAt);
+          els.saveStatus.textContent = "Synced · " + t.toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit" });
+        }
+        window.addEventListener("offline", function () { setSyncStatus(null); });
+        window.addEventListener("online", function () { setSyncStatus(null); });
+
+        // ---------- Data helpers (same shape as the file version) ----------
+        function monthTxs() {
+          return myEntries.filter(function (t) { return t.date.slice(0, 7) === state.month; });
+        }
+        function spentByCat(txs) {
+          var map = {};
+          activeExpenseCats().forEach(function (c) { map[c] = 0; });
+          txs.forEach(function (t) { if (t.type === "expense") map[t.category] = (map[t.category] || 0) + t.amount; });
+          return map;
+        }
+        function myName() { return state.name || "Me"; }
+        // The rate that changes a family member's money into the viewer's currency:
+        // 1 when the currencies match, the saved rate when one is set, or null when
+        // no rate is set yet — in which case that member stays out of the totals.
+        function memberRate(m) {
+          var cur = validCurrency(m.currency) ? m.currency : "CAD";
+          if (cur === state.currency) return 1;
+          var r = parseFloat(state.rates[cur]);
+          return isNaN(r) || r <= 0 ? null : r;
+        }
+        // Merged transactions for the selected month, each tagged with its owner.
+        function activeTxs() {
+          if (!isCombined()) return monthTxs().map(function (t) { return Object.assign({}, t, { owner: myName(), mine: true }); });
+          var out = [];
+          monthTxs().forEach(function (t) { out.push(Object.assign({}, t, { owner: myName(), mine: true })); });
+          family.forEach(function (m) {
+            var rate = memberRate(m);
+            if (rate === null) return; // no exchange rate yet — left out of the totals, never added unconverted
+            m.transactions.forEach(function (t) {
+              if (t.date.slice(0, 7) === state.month) out.push(Object.assign({}, t, { owner: m.name, mine: false, amount: convAmt(t.amount, rate) }));
+            });
+          });
+          return out;
+        }
+        // Budgets in force for the active view: combined = everyone's budgets added together.
+        function activeBudgets() {
+          if (!isCombined()) return state.budgets;
+          var cats = activeExpenseCats();
+          var sum = {};
+          cats.forEach(function (c) { sum[c] = state.budgets[c] || 0; });
+          family.forEach(function (m) {
+            var rate = memberRate(m);
+            if (rate === null) return; // no exchange rate yet — their budgets stay out too
+            cats.forEach(function (c) { sum[c] += (m.budgets[c] || 0) * rate; });
+          });
+          return sum;
+        }
+        function peopleCount() { return 1 + family.length; }
+        // Income/expense totals for any month, respecting the active view.
+        function totalsForMonth(key) {
+          var inc = 0, exp = 0;
+          function add(t) { if (t.type === "income") inc += t.amount; else exp += t.amount; }
+          myEntries.forEach(function (t) { if (t.date.slice(0, 7) === key) add(t); });
+          if (isCombined()) family.forEach(function (m) {
+            var rate = memberRate(m);
+            if (rate === null) return;
+            m.transactions.forEach(function (t) {
+              if (t.date.slice(0, 7) === key) add({ type: t.type, amount: convAmt(t.amount, rate) });
+            });
+          });
+          return { income: inc, expenses: exp, net: inc - exp };
+        }
+        function findEntry(id) {
+          var found = null;
+          myEntries.forEach(function (t) { if (t.id === id) found = t; });
+          return found;
+        }
+        function findTemplate(id) {
+          var found = null;
+          myRecurring.forEach(function (r) { if (r.id === id) found = r; });
+          return found;
+        }
+
+        // ---------- Cloud writes ----------
+        function profileRef() { return db.collection("users").doc(me.uid); }
+        function mirrorRef() { return db.collection("families").doc(profile.familyId).collection("members").doc(me.uid); }
+        // Keep the family mirror copy of my settings up to date — that's what the
+        // family owner reads for Combined view, so nobody needs access to my profile.
+        function writeMirror() {
+          if (!profile || !profile.familyId) return Promise.resolve();
+          return mirrorRef().set({
+            name: state.name, currency: state.currency, budgets: state.budgets,
+            customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats
+          }).catch(function () { /* offline — Firestore queues it */ });
+        }
+        function saveProfile(patch) {
+          for (var k in patch) profile[k] = patch[k];
+          var p = profileRef().update(patch).catch(function () { /* queued offline */ });
+          if ("name" in patch || "currency" in patch || "budgets" in patch ||
+              "customExpenseCats" in patch || "customIncomeCats" in patch) writeMirror();
+          return p;
+        }
+        function entryDocData(t) {
+          return {
+            ownerUid: me.uid,
+            familyId: profile.familyId || null,
+            type: t.type, date: t.date, category: t.category, desc: t.desc,
+            amount: t.amount, currency: state.currency,
+            recurringId: t.recurId || null,
+            createdAt: t.createdAt || Date.now()
+          };
+        }
+        function addEntry(t) {
+          return db.collection("entries").add(entryDocData(t));
+        }
+        // Add any missing monthly instances, from each template's start month up to
+        // this month (or the viewed month, if it's further ahead). Instance docs use
+        // a fixed id per template + month, so two devices adding the same month's
+        // entry write the same document instead of doubling it.
+        var materializing = false;
+        function ensureRecurring() {
+          if (!me || !profile || materializing) return;
+          var thisMonth = monthKey(today);
+          var upto = state.month > thisMonth ? state.month : thisMonth;
+          var jobs = [];
+          myRecurring.forEach(function (tpl) {
+            var key = tpl.startMonth, guard = 0;
+            while (key <= upto && guard < 600) {
+              guard++;
+              if ((tpl.exceptions || []).indexOf(key) === -1) {
+                var exists = false;
+                myEntries.forEach(function (t) {
+                  if (t.recurId === tpl.id && t.date.slice(0, 7) === key) exists = true;
+                });
+                if (!exists) {
+                  var day = Math.min(tpl.day, daysInMonth(key));
+                  var inst = {
+                    type: tpl.type, date: key + "-" + pad(day), category: tpl.category,
+                    desc: tpl.desc, amount: tpl.amount, recurId: tpl.id, createdAt: Date.now()
+                  };
+                  jobs.push(db.collection("entries").doc("rec_" + tpl.id + "_" + key).set(entryDocData(inst)));
+                }
+              }
+              key = monthShiftKey(key, 1);
+            }
+          });
+          if (jobs.length) {
+            materializing = true;
+            Promise.all(jobs).catch(function () {}).then(function () { materializing = false; });
+          }
+        }
+
+        // ---------- Plain-language auth errors ----------
+        function authErrorText(err) {
+          var code = err && err.code ? err.code : "";
+          switch (code) {
+            case "auth/invalid-credential":
+            case "auth/wrong-password":
+            case "auth/user-not-found":
+              return "We couldn't sign you in — check your email and password and try again.";
+            case "auth/email-already-in-use":
+              return "That email already has an account — try signing in instead.";
+            case "auth/weak-password":
+              return "That password is too short — use at least 6 characters.";
+            case "auth/invalid-email":
+              return "That doesn't look like a valid email address.";
+            case "auth/too-many-requests":
+              return "Too many tries in a row — wait a few minutes and try again.";
+            case "auth/network-request-failed":
+              return "No connection — check your internet and try again.";
+            case "auth/user-disabled":
+              return "This account has been switched off. Talk to the person who set up the tracker.";
+            default:
+              return "Something went wrong. Please try again.";
+          }
+        }
+        function showAuthMsg(msg, isErr) {
+          els.authMsg.textContent = msg;
+          els.authMsg.className = "auth-msg show" + (isErr ? " err" : "");
+        }
+        function showFormError(el, msg) {
+          el.textContent = msg;
+          el.className = msg ? "form-error show" : "form-error";
+        }
+
+        // ---------- Auth screens ----------
+        $("showCreateBtn").addEventListener("click", function () {
+          els.signInForm.hidden = true; els.createForm.hidden = false; showFormError(els.siError, "");
+        });
+        $("showSignInBtn").addEventListener("click", function () {
+          els.createForm.hidden = true; els.signInForm.hidden = false; showFormError(els.caError, "");
+        });
+        els.signInForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          showFormError(els.siError, "");
+          auth.signInWithEmailAndPassword(els.siEmail.value.trim(), els.siPassword.value)
+            .catch(function (err) { showFormError(els.siError, authErrorText(err)); });
+        });
+        $("forgotBtn").addEventListener("click", function () {
+          var email = els.siEmail.value.trim();
+          if (!email) { showFormError(els.siError, "Type your email above first, then tap this link."); return; }
+          auth.sendPasswordResetEmail(email).then(function () {
+            showAuthMsg("Reset link sent — check your email for a link to set a new password.", false);
+            showFormError(els.siError, "");
+          }).catch(function (err) { showFormError(els.siError, authErrorText(err)); });
+        });
+        // Name + currency picked on the create-account form are stashed here and
+        // used to build the profile the moment the account exists.
+        var pendingProfile = null;
+        els.createForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var name = els.caName.value.trim();
+          if (!name) { showFormError(els.caError, "Please tell us your name."); return; }
+          showFormError(els.caError, "");
+          pendingProfile = { name: name, currency: validCurrency(els.caCurrency.value) ? els.caCurrency.value : "CAD" };
+          auth.createUserWithEmailAndPassword(els.caEmail.value.trim(), els.caPassword.value)
+            .catch(function (err) { pendingProfile = null; showFormError(els.caError, authErrorText(err)); });
+        });
+        els.setupForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var name = els.suName.value.trim();
+          if (!name) { showFormError(els.suError, "Please tell us your name."); return; }
+          showFormError(els.suError, "");
+          createProfile(name, validCurrency(els.suCurrency.value) ? els.suCurrency.value : "CAD");
+        });
+        $("signOutBtn").addEventListener("click", function () { auth.signOut(); });
+
+        function defaultProfile(name, currency) {
+          var budgets = {};
+          EXPENSE_CATS.forEach(function (c) { budgets[c] = 0; });
+          return {
+            name: name, email: me.email || "", currency: currency, budgets: budgets,
+            customExpenseCats: [], customIncomeCats: [], rates: {},
+            familyId: null, isFamilyOwner: false, lastExportAt: 0
+          };
+        }
+        function createProfile(name, currency) {
+          var data = defaultProfile(name, currency);
+          return profileRef().set(data).then(function () {
+            profile = data; profileExists = true;
+            applyProfile();
+            startDataListeners();
+            showScreen("app");
+            render();
+          }).catch(function () {
+            showFormError(els.suError, "We couldn't save that just now — check your connection and try again.");
+          });
+        }
+
+        // ---------- Screens ----------
+        function showScreen(which) {
+          els.authView.hidden = which !== "auth";
+          els.setupView.hidden = which !== "setup";
+          els.appView.hidden = which !== "app";
+        }
+
+        // ---------- Loading my data ----------
+        function applyProfile() {
+          state.name = profile.name || "";
+          state.currency = validCurrency(profile.currency) ? profile.currency : "CAD";
+          state.budgets = {};
+          EXPENSE_CATS.forEach(function (c) { state.budgets[c] = 0; });
+          state.customExpenseCats = (profile.customExpenseCats || []).slice();
+          state.customIncomeCats = (profile.customIncomeCats || []).slice();
+          state.customExpenseCats.forEach(function (c) { state.budgets[c] = 0; });
+          if (profile.budgets) for (var k in profile.budgets) {
+            var v = parseFloat(profile.budgets[k]);
+            state.budgets[k] = isNaN(v) || v < 0 ? 0 : v;
+          }
+          state.rates = profile.rates || {};
+          var le = parseFloat(profile.lastExportAt);
+          state.lastExportAt = isNaN(le) || le < 0 ? 0 : le;
+          setFmt();
+          els.personName.value = state.name;
+          els.currencySelect.value = state.currency;
+          els.whoLine.textContent = "Signed in as " + (state.name || "you") + (me.email ? " (" + me.email + ")" : "");
+          els.viewCombined.hidden = !profile.isFamilyOwner;
+          if (!profile.isFamilyOwner && viewMode === "combined") viewMode = "personal";
+        }
+        function listen(q, onSnap, onErr) {
+          var un = q.onSnapshot(onSnap, onErr || function () {});
+          unsubs.push(un);
+          return un;
+        }
+        function clearListeners() {
+          unsubs.forEach(function (u) { try { u(); } catch (e) {} });
+          unsubs = [];
+        }
+        function entryFromDoc(d) {
+          var t = d.data();
+          return {
+            id: d.id, ownerUid: t.ownerUid, type: t.type, date: String(t.date || "").slice(0, 10),
+            category: String(t.category || "Other"), desc: String(t.desc || ""),
+            amount: parseFloat(t.amount) || 0, recurId: t.recurringId || null,
+            createdAt: t.createdAt || 0
+          };
+        }
+        function startDataListeners() {
+          clearListeners();
+          listen(profileRef(), function (snap) {
+            if (!snap.exists) return;
+            profile = snap.data();
+            profileExists = true;
+            applyProfile();
+            startFamilyListeners();
+            render();
+          });
+          listen(db.collection("entries").where("ownerUid", "==", me.uid), function (snap) {
+            myEntries = snap.docs.map(entryFromDoc);
+            setSyncStatus(snap);
+            ensureRecurring();
+            render();
+          });
+          listen(db.collection("recurring").where("ownerUid", "==", me.uid), function (snap) {
+            myRecurring = [];
+            snap.docs.forEach(function (d) {
+              var r = d.data();
+              if (r.active === false) return;
+              myRecurring.push({
+                id: d.id, type: r.type, day: Math.min(Math.max(parseInt(r.day, 10) || 1, 1), 31),
+                category: String(r.category || "Other"), desc: String(r.desc || ""),
+                amount: parseFloat(r.amount) || 0, startMonth: String(r.startMonth || "").slice(0, 7),
+                exceptions: Array.isArray(r.exceptions) ? r.exceptions.slice() : []
+              });
+            });
+            ensureRecurring();
+            render();
+          });
+          startFamilyListeners();
+        }
+        // Family listeners follow the profile's familyId; they restart whenever it changes.
+        var familyListenKey = "";
+        function startFamilyListeners() {
+          var fid = profile && profile.familyId ? profile.familyId : "";
+          var key = fid + "|" + (profile && profile.isFamilyOwner ? "owner" : "member");
+          if (key === familyListenKey) return;
+          familyListenKey = key;
+          // Drop the previous family listeners (they are the ones after the first three).
+          while (unsubs.length > 3) { var u = unsubs.pop(); try { u(); } catch (e) {} }
+          familyDoc = null; familyMirrors = {}; familyEntries = []; rebuildFamily();
+          if (!fid) { render(); return; }
+          listen(db.collection("families").doc(fid), function (snap) {
+            if (!snap.exists) { onFamilyGone(); return; }
+            familyDoc = snap.data();
+            // Removed by the owner? The doc no longer lists me and I'm not the owner.
+            if (!profile.isFamilyOwner && familyDoc.memberUids && familyDoc.memberUids.indexOf(me.uid) === -1) { onFamilyGone(); return; }
+            rebuildFamily();
+            render();
+          }, function () {
+            // A member who is removed loses read access to the family doc — the
+            // listener failing with permission-denied is how we find out.
+            if (!profile.isFamilyOwner) onFamilyGone();
+          });
+          if (profile.isFamilyOwner) {
+            listen(db.collection("families").doc(fid).collection("members"), function (snap) {
+              familyMirrors = {};
+              snap.docs.forEach(function (d) { familyMirrors[d.id] = d.data(); });
+              rebuildFamily();
+              render();
+            });
+            listen(db.collection("entries").where("familyId", "==", fid), function (snap) {
+              familyEntries = snap.docs.map(entryFromDoc);
+              setSyncStatus(snap);
+              rebuildFamily();
+              render();
+            });
+          }
+        }
+        // When the owner removes a member, the owner's app cannot write that
+        // member's profile or entries (the rules forbid it) — so the member's own
+        // app tidies up here: it clears the family stamp from its profile, its
+        // entries and its monthly entries, and deletes its family mirror copy.
+        // The same cleanup runs when the family itself has been deleted.
+        function onFamilyGone() {
+          if (cleaningFamily || !profile || !profile.familyId || profile.isFamilyOwner) return;
+          cleaningFamily = true;
+          var fid = profile.familyId;
+          var batch = db.batch();
+          batch.update(profileRef(), { familyId: null });
+          myEntries.forEach(function (t) {
+            if (t) batch.update(db.collection("entries").doc(t.id), { familyId: null });
+          });
+          var jobs = [batch.commit().catch(function () {})];
+          jobs.push(db.collection("families").doc(fid).collection("members").doc(me.uid).delete().catch(function () {}));
+          // Monthly templates keep their stamps in their own docs; clear them too.
+          jobs.push(db.collection("recurring").where("ownerUid", "==", me.uid).get().then(function (snap) {
+            var b2 = db.batch();
+            var any = false;
+            snap.docs.forEach(function (d) { if (d.data().familyId) { b2.update(d.ref, { familyId: null }); any = true; } });
+            return any ? b2.commit() : null;
+          }).catch(function () {}));
+          Promise.all(jobs).then(function () {
+            profile.familyId = null;
+            familyListenKey = "__cleaned__";
+            cleaningFamily = false;
+            startFamilyListeners();
+            showFamilyMsg("You're no longer in that family — your entries are private to you again.", false);
+          });
+        }
+
+        // ---------- Auth state ----------
+        auth.onAuthStateChanged(function (user) {
+          clearListeners();
+          familyListenKey = "";
+          me = user || null;
+          profile = null; profileExists = false;
+          myEntries = []; myRecurring = []; familyDoc = null; familyMirrors = {}; familyEntries = []; family = [];
+          viewMode = "personal";
+          if (!user) { showScreen("auth"); return; }
+          persistenceReady.then(function () {
+            return profileRef().get();
+          }).then(function (snap) {
+            if (snap.exists) {
+              profile = snap.data();
+              profileExists = true;
+              applyProfile();
+              startDataListeners();
+              showScreen("app");
+              render();
+            } else if (pendingProfile) {
+              var pp = pendingProfile; pendingProfile = null;
+              createProfile(pp.name, pp.currency);
+            } else {
+              showScreen("setup");
+            }
+          }).catch(function () {
+            // Offline with nothing cached yet — let them set up; the profile
+            // write is queued by Firestore and syncs when they're back online.
+            if (pendingProfile) {
+              var pp2 = pendingProfile; pendingProfile = null;
+              createProfile(pp2.name, pp2.currency);
+            } else {
+              showScreen("setup");
+            }
+          });
+        });
+
+        // ---------- Category select ----------
+        function fillCategories() {
+          var cats = formType === "income" ? incomeCats() : expenseCats();
+          els.entryCategory.innerHTML = cats.map(function (c) {
+            return '<option value="' + esc(c) + '">' + esc(c) + "</option>";
+          }).join("");
+        }
+        function setType(type) {
+          formType = type;
+          els.typeExpense.setAttribute("aria-pressed", type === "expense" ? "true" : "false");
+          els.typeIncome.setAttribute("aria-pressed", type === "income" ? "true" : "false");
+          fillCategories();
+          if (!editingId) els.submitBtn.textContent = type === "income" ? "Add income" : "Add expense";
+        }
+        els.typeExpense.addEventListener("click", function () { setType("expense"); });
+        els.typeIncome.addEventListener("click", function () { setType("income"); });
+
+        // ---------- Month navigation ----------
+        function shiftMonth(delta) {
+          state.month = monthShiftKey(state.month, delta);
+          els.monthPicker.value = state.month;
+          ensureRecurring();
+          render();
+        }
+        $("prevMonth").addEventListener("click", function () { shiftMonth(-1); });
+        $("nextMonth").addEventListener("click", function () { shiftMonth(1); });
+        els.monthPicker.addEventListener("change", function () {
+          if (els.monthPicker.value) { state.month = els.monthPicker.value; ensureRecurring(); render(); }
+        });
+        var nameSaveTimer = null;
+        els.personName.addEventListener("input", function () {
+          state.name = els.personName.value.trim();
+          els.whoLine.textContent = "Signed in as " + (state.name || "you") + (me && me.email ? " (" + me.email + ")" : "");
+          if (nameSaveTimer) clearTimeout(nameSaveTimer);
+          nameSaveTimer = setTimeout(function () { if (profile) saveProfile({ name: state.name }); }, 600);
+        });
+        els.currencySelect.addEventListener("change", function () {
+          if (!validCurrency(this.value)) return;
+          state.currency = this.value;
+          setFmt();
+          if (profile) saveProfile({ currency: state.currency });
+          render();
+        });
+
+        // ---------- Render ----------
+        function render() {
+          if (!me || !profile) return;
+          els.monthName.textContent = monthLabel(state.month);
+          els.amountLabel.textContent = "Amount (" + CURR[state.currency].sym + ")";
+          var combined = isCombined();
+          els.viewPersonal.setAttribute("aria-pressed", combined ? "false" : "true");
+          els.viewCombined.setAttribute("aria-pressed", combined ? "true" : "false");
+          els.viewNote.textContent = combined
+            ? "Combined view: adding up " + peopleCount() + (peopleCount() === 1 ? " person" : " people") + " for " + monthLabel(state.month) + ". Entries you add still go to your own tracker."
+            : "Showing only your own entries." + (profile.isFamilyOwner ? " Switch to Combined to add up everyone's totals together." : "");
+          els.addHint.textContent = combined
+            ? "Entries you add here go to your own tracker — and count toward the combined totals."
+            : "Pick income or expense, then fill in the details.";
+          els.budgetHint.textContent = combined
+            ? "Combined budgets: everyone's monthly budget for each category, changed into your currency and added together. To change a budget, switch to “Just me” (family members change theirs in their own account)."
+            : "Set what you want to spend per category each month. Bars turn amber at 80% and red when you go over.";
+          els.breakHint.textContent = combined
+            ? "Family spending by category for the selected month, all people combined."
+            : "Spending by category for the selected month.";
+          els.txHint.textContent = combined
+            ? "Everyone's entries for the selected month, newest first. You can edit or delete only your own."
+            : "Everything logged for the selected month, newest first.";
+          var budgets = activeBudgets();
+          var txs = activeTxs();
+          var income = 0, expenses = 0, inCount = 0, outCount = 0;
+          txs.forEach(function (t) {
+            if (t.type === "income") { income += t.amount; inCount++; }
+            else { expenses += t.amount; outCount++; }
+          });
+          var spent = spentByCat(txs);
+          var totalBudget = activeExpenseCats().reduce(function (s, c) { return s + (budgets[c] || 0); }, 0);
+
+          els.sumIncome.textContent = fmt.format(income);
+          els.sumIncomeSub.textContent = inCount ? inCount + (inCount === 1 ? " income entry" : " income entries") + (combined ? " · whole family" : "") : "No income logged yet";
+          els.sumExpenses.textContent = fmt.format(expenses);
+          els.sumExpensesSub.textContent = outCount ? outCount + (outCount === 1 ? " expense" : " expenses") + (combined ? " · whole family" : "") : "No expenses logged yet";
+          var net = income - expenses;
+          els.sumNet.textContent = fmt.format(net);
+          els.netStat.classList.toggle("over", net < 0);
+          els.netStat.querySelector(".label").textContent = net < 0 ? "Over spent" : "Left over";
+
+          if (totalBudget > 0) {
+            var pct = Math.round((expenses / totalBudget) * 100);
+            els.sumBudget.textContent = fmt.format(expenses) + " of " + fmt.format(totalBudget);
+            els.sumBudgetSub.textContent = pct + "% of the month's total budget used" + (combined ? " (all budgets combined)" : "");
+            els.budgetMeter.style.width = Math.min(pct, 100) + "%";
+            els.budgetMeter.className = pct > 100 ? "over" : pct >= 80 ? "near" : "";
+            els.budgetStat.classList.toggle("over", pct > 100);
+          } else {
+            els.sumBudget.textContent = fmt.format(expenses);
+            els.sumBudgetSub.textContent = combined ? "No budgets set by anyone yet" : "Set budgets below to track against them";
+            els.budgetMeter.style.width = "0%";
+            els.budgetMeter.className = "";
+            els.budgetStat.classList.remove("over");
+          }
+
+          renderFamily();
+          renderAlert(spent, budgets);
+          renderBudgets(spent, budgets);
+          renderBreakdown(spent, expenses);
+          renderTransactions(txs);
+          renderCompare();
+          renderTrend();
+          renderRecurring();
+          renderCustomCats();
+          updateNudge();
+        }
+
+        function renderAlert(spent, budgets) {
+          var over = activeExpenseCats().filter(function (c) {
+            return budgets[c] > 0 && spent[c] > budgets[c];
+          });
+          if (!over.length) { els.overAlert.className = "alert"; els.overAlert.innerHTML = ""; return; }
+          var items = over.map(function (c) {
+            return "<li><strong>" + esc(c) + "</strong> — spent " + fmt.format(spent[c]) +
+              " of " + fmt.format(budgets[c]) + " budget (" + fmt.format(spent[c] - budgets[c]) + " over)</li>";
+          }).join("");
+          els.overAlert.className = "alert show";
+          els.overAlert.innerHTML = "<strong>Over budget in " + monthLabel(state.month) + (isCombined() ? " (whole family)" : "") + ":</strong><ul>" + items + "</ul>";
+        }
+
+        function budgetStatus(cat, spentAmt, budgets) {
+          var b = (budgets || state.budgets)[cat] || 0;
+          if (b <= 0) return { cls: "none", text: "No budget set" };
+          var pct = (spentAmt / b) * 100;
+          if (spentAmt > b) return { cls: "over", text: "Over budget" };
+          if (pct >= 80) return { cls: "near", text: "Near limit" };
+          return { cls: "ok", text: "On track" };
+        }
+
+        function renderBudgets(spent, budgets) {
+          budgets = budgets || state.budgets;
+          var combined = isCombined();
+          els.budgetList.innerHTML = activeExpenseCats().map(function (cat) {
+            var b = budgets[cat] || 0;
+            var s = spent[cat] || 0;
+            var st = budgetStatus(cat, s, budgets);
+            var pct = b > 0 ? Math.min((s / b) * 100, 100) : 0;
+            var barCls = st.cls === "over" ? "over" : st.cls === "near" ? "near" : "";
+            var nums;
+            if (b > 0) {
+              nums = "<span>Spent " + fmt.format(s) + "</span><span>of " + fmt.format(b) + "</span>" +
+                (s > b
+                  ? '<span class="over-amt">' + fmt.format(s - b) + " over</span>"
+                  : "<span>" + fmt.format(b - s) + " left</span>");
+            } else {
+              nums = "<span>Spent " + fmt.format(s) + "</span><span>No monthly budget yet</span>";
+            }
+            var editRow = combined
+              ? '<div class="budget-nums" style="margin-top:6px;"><span>Combined monthly budget: <strong>' + fmt.format(b) + "</strong> (everyone's added together, in your currency)</span></div>"
+              : '<div class="budget-edit"><label for="bud-' + esc(cat) + '">Monthly budget</label>' +
+                '<div class="money"><span>' + esc(CURR[state.currency].sym) + '</span><input type="number" min="0" step="1" inputmode="decimal" ' +
+                'id="bud-' + esc(cat) + '" data-cat="' + esc(cat) + '" class="budget-input" value="' + (b ? b : "") + '" placeholder="0" /></div></div>';
+            return '<div class="budget-item">' +
+              '<div class="budget-head"><span class="budget-name">' + esc(cat) + '</span>' +
+              '<span class="chip ' + st.cls + '">' + st.text + "</span></div>" +
+              '<div class="budget-nums">' + nums + "</div>" +
+              '<div class="meter"><div class="' + barCls + '" style="width:' + pct + '%"></div></div>' +
+              editRow +
+              "</div>";
+          }).join("");
+
+          var inputs = els.budgetList.querySelectorAll(".budget-input");
+          for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener("change", function () {
+              var cat = this.getAttribute("data-cat");
+              var v = parseFloat(this.value);
+              state.budgets[cat] = isNaN(v) || v < 0 ? 0 : v;
+              saveProfile({ budgets: state.budgets });
+              render();
+            });
+          }
+        }
+
+        function renderBreakdown(spent, totalExpenses) {
+          var rows = activeExpenseCats()
+            .map(function (c) { return { cat: c, amt: spent[c] || 0 }; })
+            .filter(function (r) { return r.amt > 0; })
+            .sort(function (a, b) { return b.amt - a.amt; });
+          if (!rows.length) {
+            els.breakdown.innerHTML = '<p class="empty">No spending logged for ' + esc(monthLabel(state.month)) + " yet.</p>";
+            return;
+          }
+          var max = rows[0].amt;
+          els.breakdown.innerHTML = rows.map(function (r, i) {
+            var w = Math.max((r.amt / max) * 100, 3);
+            var share = totalExpenses > 0 ? Math.round((r.amt / totalExpenses) * 100) : 0;
+            return '<div class="break-row"><span class="bname">' + esc(r.cat) + '</span>' +
+              '<div class="break-track"><div class="break-fill' + (i === 0 ? " top" : "") + '" style="width:' + w + '%"></div></div>' +
+              '<span class="bamt">' + fmt.format(r.amt) + " · " + share + "%</span></div>";
+          }).join("");
+        }
+
+        function renderTransactions(txs) {
+          var q = els.txSearch.value.trim().toLowerCase();
+          var f = els.txFilter.value;
+          var sorted = txs.slice().sort(function (a, b) {
+            if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+            if ((b.createdAt || 0) !== (a.createdAt || 0)) return (b.createdAt || 0) - (a.createdAt || 0);
+            return a.id < b.id ? 1 : -1;
+          });
+          var shown = sorted.filter(function (t) {
+            if (f !== "all" && t.type !== f) return false;
+            if (q && (t.desc + " " + t.category + " " + (t.owner || "")).toLowerCase().indexOf(q) === -1) return false;
+            return true;
+          });
+          els.txEmpty.style.display = shown.length ? "none" : "block";
+          els.txEmpty.innerHTML = txs.length
+            ? "No entries match your search or filter."
+            : "No entries yet for this month.<br />Add your first income or expense using the form.";
+          var combined = isCombined();
+          els.txList.innerHTML = shown.map(function (t) {
+            var sign = t.type === "income" ? "+" : "−";
+            var ownerHtml = combined ? '<span class="owner-chip">' + esc(t.owner || "") + "</span>" : "";
+            var monthlyHtml = t.recurId ? '<span class="chip monthly">Monthly</span>' : "";
+            var actions = t.mine === false
+              ? '<div class="actions"><span style="color:var(--muted); font-size:0.88rem;">From ' + esc(t.owner || "a family member") + " — only they can change it, in their own account.</span></div>"
+              : '<div class="actions"><button type="button" class="edit" data-id="' + esc(t.id) + '">Edit</button>' +
+                '<button type="button" class="dup" data-id="' + esc(t.id) + '">Duplicate</button>' +
+                '<button type="button" class="del" data-id="' + esc(t.id) + '">Delete</button></div>';
+            return '<li class="tx" data-id="' + esc(t.id) + '">' +
+              '<div><div class="desc">' + esc(t.desc || t.category) + '</div>' +
+              '<div class="meta"><span>' + prettyDate(t.date) + '</span><span class="cat">' + esc(t.category) + "</span>" +
+              "<span>" + (t.type === "income" ? "Income" : "Expense") + "</span>" + monthlyHtml + ownerHtml + "</div></div>" +
+              '<div class="amt ' + (t.type === "income" ? "in" : "out") + '">' + sign + fmt.format(t.amount) + "</div>" +
+              actions + "</li>";
+          }).join("");
+
+          var editBtns = els.txList.querySelectorAll(".edit");
+          for (var i = 0; i < editBtns.length; i++) editBtns[i].addEventListener("click", function () { startEdit(this.getAttribute("data-id")); });
+          var dupBtns = els.txList.querySelectorAll(".dup");
+          for (var k = 0; k < dupBtns.length; k++) dupBtns[k].addEventListener("click", function () { duplicateTx(this.getAttribute("data-id")); });
+          var delBtns = els.txList.querySelectorAll(".del");
+          for (var j = 0; j < delBtns.length; j++) delBtns[j].addEventListener("click", function () { deleteTx(this.getAttribute("data-id")); });
+        }
+        els.txSearch.addEventListener("input", render);
+        els.txFilter.addEventListener("change", render);
+
+        // ---------- Compare with last month + 6-month trend ----------
+        function setCompare(elVal, elSub, cur, last, upIsGood) {
+          elVal.className = "cval";
+          if (last === 0 && cur === 0) { elVal.textContent = "—"; elSub.textContent = "No entries this month or last month"; return; }
+          if (last === 0) { elVal.textContent = "New"; elSub.textContent = "Nothing logged last month"; return; }
+          var diff = Math.round((cur - last) * 100) / 100;
+          if (diff === 0) { elVal.textContent = fmt.format(0); elSub.textContent = "About the same as last month (" + fmt.format(last) + ")"; return; }
+          var up = diff > 0;
+          var good = upIsGood ? up : !up;
+          elVal.textContent = (up ? "+" : "−") + fmt.format(Math.abs(diff));
+          elVal.className = "cval " + (good ? (up ? "up-good" : "down-good") : (up ? "up-bad" : "down-bad"));
+          var pct = Math.round((Math.abs(diff) / Math.abs(last)) * 100);
+          elSub.textContent = (up ? "Up " : "Down ") + pct + "% from " + fmt.format(last) + " last month";
+        }
+        function renderCompare() {
+          var prevKey = monthShiftKey(state.month, -1);
+          var cur = totalsForMonth(state.month);
+          var last = totalsForMonth(prevKey);
+          els.compareHint.textContent = "How " + monthLabel(state.month) + " stacks up against " + monthLabel(prevKey) + (isCombined() ? " — whole family." : ".");
+          setCompare(els.cmpIncome, els.cmpIncomeSub, cur.income, last.income, true);
+          setCompare(els.cmpExpenses, els.cmpExpensesSub, cur.expenses, last.expenses, false);
+          setCompare(els.cmpNet, els.cmpNetSub, cur.net, last.net, true);
+        }
+        function renderTrend() {
+          var keys = [];
+          for (var i = 5; i >= 0; i--) keys.push(monthShiftKey(state.month, -i));
+          var totals = keys.map(function (k) { return totalsForMonth(k); });
+          var max = 0;
+          totals.forEach(function (t) { max = Math.max(max, t.income, t.expenses); });
+          els.trendBars.innerHTML = keys.map(function (k, i) {
+            var t = totals[i];
+            var ih = max > 0 && t.income > 0 ? Math.max(Math.round((t.income / max) * 100), 4) : 0;
+            var eh = max > 0 && t.expenses > 0 ? Math.max(Math.round((t.expenses / max) * 100), 4) : 0;
+            var parts = k.split("-");
+            var label = new Date(Number(parts[0]), Number(parts[1]) - 1, 1).toLocaleDateString("en-CA", { month: "short" });
+            var title = monthLabel(k) + " — income " + fmt.format(t.income) + ", expenses " + fmt.format(t.expenses);
+            return '<div class="trend-col"><div class="trend-bars" title="' + esc(title) + '">' +
+              '<div class="trend-bar inc" style="height:' + ih + '%"></div>' +
+              '<div class="trend-bar exp" style="height:' + eh + '%"></div></div>' +
+              '<span class="trend-label">' + esc(label) + "</span></div>";
+          }).join("");
+        }
+
+        // ---------- Recurring entries ----------
+        function renderRecurring() {
+          els.recurringCard.hidden = !myRecurring.length;
+          if (!myRecurring.length) { els.recurringList.innerHTML = ""; return; }
+          els.recurringList.innerHTML = myRecurring.map(function (tpl) {
+            var sign = tpl.type === "income" ? "+" : "−";
+            return '<div class="recur-row"><div>' +
+              '<span class="rname">' + esc(tpl.desc || tpl.category) + '</span>' +
+              '<div class="rmeta">' + esc(tpl.category) + " · day " + tpl.day + " of the month · since " + esc(monthLabel(tpl.startMonth)) + "</div></div>" +
+              '<div><div class="ramt ' + (tpl.type === "income" ? "in" : "out") + '">' + sign + fmt.format(tpl.amount) + "</div>" +
+              '<button type="button" class="stop-recur" data-id="' + esc(tpl.id) + '">Stop</button></div></div>';
+          }).join("");
+          var btns = els.recurringList.querySelectorAll(".stop-recur");
+          for (var i = 0; i < btns.length; i++) btns[i].addEventListener("click", function () { stopRecurring(this.getAttribute("data-id")); });
+        }
+        function stopRecurring(id) {
+          db.collection("recurring").doc(id).update({ active: false }).catch(function () {});
+        }
+
+        // ---------- Custom categories ----------
+        function catInUse(name, type) {
+          var used = false;
+          myEntries.forEach(function (t) { if (t.type === type && t.category === name) used = true; });
+          myRecurring.forEach(function (r) { if (r.type === type && r.category === name) used = true; });
+          return used;
+        }
+        function renderCustomCats() {
+          var items = [];
+          state.customExpenseCats.forEach(function (c) { items.push({ name: c, type: "expense" }); });
+          state.customIncomeCats.forEach(function (c) { items.push({ name: c, type: "income" }); });
+          els.customCatList.innerHTML = items.map(function (it) {
+            var used = catInUse(it.name, it.type);
+            return "<li><span><span class=\"cname\">" + esc(it.name) + '</span> <span class="ctag">' + (it.type === "income" ? "Income" : "Expense") + "</span></span>" +
+              '<button type="button" class="remove-cat" data-name="' + esc(it.name) + '" data-type="' + it.type + '"' + (used ? " disabled" : "") + ">Remove</button>" +
+              (used ? '<span class="cnote">In use by an entry, so it can\'t be removed.</span>' : "") + "</li>";
+          }).join("");
+          var btns = els.customCatList.querySelectorAll(".remove-cat");
+          for (var i = 0; i < btns.length; i++) btns[i].addEventListener("click", function () {
+            removeCustomCat(this.getAttribute("data-name"), this.getAttribute("data-type"));
+          });
+        }
+        function showCatMsg(msg, isErr) {
+          els.catMsg.textContent = msg;
+          els.catMsg.className = "cat-msg show" + (isErr ? " err" : "");
+        }
+        function addCustomCat() {
+          var name = els.catName.value.trim().replace(/\s+/g, " ");
+          var type = els.catType.value;
+          if (!name) { showCatMsg("Type a name for the category first.", true); return; }
+          var dupe = false;
+          EXPENSE_CATS.concat(INCOME_CATS, state.customExpenseCats, state.customIncomeCats).forEach(function (c) {
+            if (c.toLowerCase() === name.toLowerCase()) dupe = true;
+          });
+          if (dupe) { showCatMsg("That category already exists.", true); return; }
+          if (type === "income") {
+            state.customIncomeCats.push(name);
+            profile.customIncomeCats = state.customIncomeCats;
+            saveProfile({ customIncomeCats: state.customIncomeCats });
+          } else {
+            state.customExpenseCats.push(name);
+            if (state.budgets[name] == null) state.budgets[name] = 0;
+            profile.customExpenseCats = state.customExpenseCats;
+            saveProfile({ customExpenseCats: state.customExpenseCats, budgets: state.budgets });
+          }
+          els.catName.value = "";
+          showCatMsg("Added “" + name + "”.", false);
+          render();
+        }
+        function removeCustomCat(name, type) {
+          if (catInUse(name, type)) return;
+          if (type === "income") {
+            state.customIncomeCats = state.customIncomeCats.filter(function (c) { return c !== name; });
+            profile.customIncomeCats = state.customIncomeCats;
+            saveProfile({ customIncomeCats: state.customIncomeCats });
+          } else {
+            state.customExpenseCats = state.customExpenseCats.filter(function (c) { return c !== name; });
+            delete state.budgets[name];
+            profile.customExpenseCats = state.customExpenseCats;
+            saveProfile({ customExpenseCats: state.customExpenseCats, budgets: state.budgets });
+          }
+          showCatMsg("Removed “" + name + "”.", false);
+          render();
+        }
+        els.catAddBtn.addEventListener("click", addCustomCat);
+        els.catName.addEventListener("keydown", function (ev) { if (ev.key === "Enter") { ev.preventDefault(); addCustomCat(); } });
+
+        // ---------- Backup nudge ----------
+        var nudgeDismissed = false;
+        function updateNudge() {
+          var show = false, text = "";
+          if (!nudgeDismissed && myEntries.length) {
+            if (!state.lastExportAt) { show = true; text = "You haven't exported a backup yet — export one below to keep your own copy of your entries."; }
+            else if (Date.now() - state.lastExportAt > 30 * 24 * 60 * 60 * 1000) { show = true; text = "It's been a while since your last backup — export one below to be safe."; }
+          }
+          els.backupNudge.className = "backup-nudge" + (show ? " show" : "");
+          if (show) els.backupNudgeText.textContent = text;
+        }
+        els.nudgeDismiss.addEventListener("click", function () { nudgeDismissed = true; updateNudge(); });
+
+        // ---------- Family panel ----------
+        function showFamilyMsg(msg, isErr) {
+          els.familyMsg.textContent = msg;
+          els.familyMsg.className = "combined-msg show" + (isErr ? " err" : "");
+        }
+        function showCombinedMsg(msg, isErr) {
+          els.combinedMsg.textContent = msg;
+          els.combinedMsg.className = "combined-msg show" + (isErr ? " err" : "");
+        }
+        function renderFamily() {
+          if (!profile) return;
+          var inFamily = !!profile.familyId;
+          var owner = inFamily && !!profile.isFamilyOwner;
+          els.famNone.hidden = inFamily;
+          els.famOwner.hidden = !owner;
+          els.famMember.hidden = !(inFamily && !owner);
+          if (owner) {
+            els.familyHint.textContent = "Your family is linked. Share the invite code with anyone else you want to add.";
+            els.ownerCode.textContent = familyDoc && familyDoc.code ? familyDoc.code : "——————";
+            renderOwnerMembers();
+            els.combinedInfo.hidden = !isCombined();
+            if (isCombined()) { renderMembers(); renderRates(); }
+          } else if (inFamily) {
+            els.familyHint.textContent = "You're part of a family in this tracker.";
+            var ownerName = familyDoc && familyDoc.ownerName ? familyDoc.ownerName : "The family owner";
+            els.memberInfoText.textContent = "You're in " + ownerName + "'s family — they can see your entries in their combined view. Your entries are still yours: only you can add, change or delete them.";
+          } else {
+            els.familyHint.textContent = "Link up with your family so one person can see everyone's spending together.";
+          }
+        }
+        function renderOwnerMembers() {
+          var uids = familyDoc && familyDoc.memberUids ? familyDoc.memberUids.filter(function (u) { return u !== me.uid; }) : [];
+          if (!uids.length) {
+            els.ownerMemberList.innerHTML = '<p class="empty">Nobody has joined yet. Share your invite code to add your family.</p>';
+            return;
+          }
+          els.ownerMemberList.innerHTML = uids.map(function (u) {
+            var mir = familyMirrors[u];
+            var name = mir && mir.name ? mir.name : "Family member";
+            var sub = mir
+              ? "Tracks in " + (validCurrency(mir.currency) ? mir.currency : "CAD")
+              : "Hasn't opened the tracker since joining — their name and totals show up once they do.";
+            return '<div class="member-row"><div><span class="mname">' + esc(name) + '</span><span class="mtag">Family</span>' +
+              '<div class="mnums"><span>' + esc(sub) + "</span></div></div>" +
+              '<div><button type="button" class="remove-member" data-uid="' + esc(u) + '">Remove</button></div></div>';
+          }).join("");
+          var btns = els.ownerMemberList.querySelectorAll(".remove-member");
+          for (var i = 0; i < btns.length; i++) btns[i].addEventListener("click", function () { removeMember(this.getAttribute("data-uid")); });
+        }
+        // One person's own totals for the selected month, in their own currency.
+        function ownMonthStats(transactions) {
+          var inc = 0, exp = 0, n = 0;
+          transactions.forEach(function (t) {
+            if (t.date.slice(0, 7) !== state.month) return;
+            n++;
+            if (t.type === "income") inc += t.amount; else exp += t.amount;
+          });
+          return { inc: inc, exp: exp, n: n };
+        }
+        function memberNumsHtml(s, format) {
+          var net = s.inc - s.exp;
+          return '<div class="mnums"><span>Income <b class="in">' + format(s.inc) + '</b></span>' +
+            '<span>Expenses <b class="out">' + format(s.exp) + '</b></span>' +
+            "<span>Left over <b>" + format(net) + "</b></span>" +
+            "<span>" + s.n + (s.n === 1 ? " entry" : " entries") + " this month</span></div>";
+        }
+        function renderMembers() {
+          els.combinedEmpty.style.display = family.length ? "none" : "block";
+          var rows = [];
+          var mine = ownMonthStats(myEntries);
+          rows.push('<div class="member-row"><div>' +
+            '<span class="mname">' + esc(myName()) + '</span><span class="mtag">You</span>' +
+            memberNumsHtml(mine, function (v) { return fmt.format(v); }) + "</div><div></div></div>");
+          family.forEach(function (m) {
+            var cur = validCurrency(m.currency) ? m.currency : "CAD";
+            var s = ownMonthStats(m.transactions);
+            var mf = fmtFor(cur);
+            var html = '<div class="member-row"><div>' +
+              '<span class="mname">' + esc(m.name) + '</span><span class="mtag">Family</span>' +
+              memberNumsHtml(s, function (v) { return mf.format(v); });
+            if (cur !== state.currency) {
+              var rate = memberRate(m);
+              if (rate === null) {
+                html += '<div class="mnums"><span>Not in the family totals yet — set the exchange rate above to include ' + esc(m.name) + ".</span></div>";
+              } else {
+                var conv = { inc: convAmt(s.inc, rate), exp: convAmt(s.exp, rate), n: s.n };
+                html += memberNumsHtml(conv, function (v) { return fmt.format(v); }).replace('<div class="mnums">', '<div class="mnums"><span><strong>In your currency:</strong></span>');
+              }
+            }
+            html += "</div><div></div></div>";
+            rows.push(html);
+          });
+          els.memberList.innerHTML = rows.join("");
+        }
+        // The exchange-rate fields: one per family currency that differs from the
+        // viewer's, plus a plain note for every member who can't be totalled yet.
+        function renderRates() {
+          var foreign = [];
+          family.forEach(function (m) {
+            var cur = validCurrency(m.currency) ? m.currency : "CAD";
+            if (cur !== state.currency && foreign.indexOf(cur) === -1) foreign.push(cur);
+          });
+          els.ratesArea.hidden = !foreign.length;
+          if (!foreign.length) { els.rateFields.innerHTML = ""; els.rateNotes.innerHTML = ""; return; }
+          els.rateFields.innerHTML = foreign.map(function (cur) {
+            var v = state.rates[cur];
+            return '<div class="rate-row"><label for="rate-' + cur + '">1 ' + esc(CURR[cur].sym) + " (" + cur + ") =</label>" +
+              '<input type="number" class="rate-input" id="rate-' + cur + '" data-cur="' + cur + '" min="0" step="any" inputmode="decimal" ' +
+              'placeholder="e.g. 0.27" value="' + (v ? v : "") + '" aria-label="Exchange rate: 1 ' + cur + ' in ' + state.currency + '" />' +
+              '<span class="rate-cur">' + state.currency + "</span></div>";
+          }).join("");
+          var notes = [];
+          family.forEach(function (m) {
+            var cur = validCurrency(m.currency) ? m.currency : "CAD";
+            if (cur !== state.currency && memberRate(m) === null) {
+              notes.push('<p class="rate-note">' + esc(m.name) + "'s entries are in " + cur + " — set the exchange rate above to include them in the totals.</p>");
+            }
+          });
+          els.rateNotes.innerHTML = notes.join("");
+          var inputs = els.rateFields.querySelectorAll(".rate-input");
+          for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener("change", function () {
+              var cur = this.getAttribute("data-cur");
+              var v = parseFloat(this.value);
+              if (isNaN(v) || v <= 0) delete state.rates[cur];
+              else state.rates[cur] = v;
+              profile.rates = state.rates;
+              saveProfile({ rates: state.rates });
+              render();
+            });
+          }
+        }
+        function setView(mode) {
+          if (mode === "combined" && !(profile && profile.isFamilyOwner)) mode = "personal";
+          viewMode = mode;
+          render();
+        }
+        els.viewPersonal.addEventListener("click", function () { setView("personal"); });
+        els.viewCombined.addEventListener("click", function () { setView("combined"); });
+
+        // ---------- Family actions ----------
+        function genCode() {
+          var chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", out = "";
+          for (var i = 0; i < 6; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+          return out;
+        }
+        // Stamp (or clear) the family id on everything I own — my entries and my
+        // monthly templates — in batches. Used when joining, leaving, or when the
+        // family is created or deleted.
+        function stampFamily(fid) {
+          var writes = [];
+          myEntries.forEach(function (t) { writes.push({ ref: db.collection("entries").doc(t.id), data: { familyId: fid } }); });
+          return db.collection("recurring").where("ownerUid", "==", me.uid).get().then(function (snap) {
+            snap.docs.forEach(function (d) { writes.push({ ref: d.ref, data: { familyId: fid } }); });
+            var chain = Promise.resolve();
+            for (var i = 0; i < writes.length; i += 450) {
+              (function (chunk) {
+                chain = chain.then(function () {
+                  var b = db.batch();
+                  chunk.forEach(function (w) { b.update(w.ref, w.data); });
+                  return b.commit();
+                });
+              })(writes.slice(i, i + 450));
+            }
+            return chain;
+          }).catch(function () {});
+        }
+        $("famCreateBtn").addEventListener("click", function () {
+          if (profile.familyId) return;
+          var name = els.famName.value.trim() || (state.name ? state.name + "'s family" : "My family");
+          var code = genCode();
+          var famRef = db.collection("families").doc();
+          var batch = db.batch();
+          batch.set(famRef, {
+            ownerUid: me.uid, name: name, ownerName: state.name || "", code: code,
+            memberUids: [me.uid], createdAt: Date.now()
+          });
+          batch.set(db.collection("invites").doc(code), { familyId: famRef.id, ownerUid: me.uid });
+          batch.update(profileRef(), { familyId: famRef.id, isFamilyOwner: true });
+          batch.commit().then(function () {
+            profile.familyId = famRef.id;
+            profile.isFamilyOwner = true;
+            els.viewCombined.hidden = false;
+            return writeMirror();
+          }).then(function () { return stampFamily(famRef.id); })
+            .then(function () {
+              familyListenKey = "";
+              startFamilyListeners();
+              showFamilyMsg("Your family is ready — share the invite code with your family so they can join.", false);
+              render();
+            })
+            .catch(function () { showFamilyMsg("We couldn't create the family just now — check your connection and try again.", true); });
+        });
+        $("joinBtn").addEventListener("click", function () {
+          var code = els.joinCode.value.trim().toUpperCase();
+          if (!code) { showFamilyMsg("Type the invite code first.", true); return; }
+          if (profile.familyId) { showFamilyMsg("You're already in a family — leave it before joining another.", true); return; }
+          db.collection("invites").doc(code).get().then(function (snap) {
+            if (!snap.exists) { showFamilyMsg("That code doesn't look right — check it and try again.", true); return null; }
+            var fid = snap.data().familyId;
+            return db.collection("families").doc(fid).update({
+              memberUids: firebase.firestore.FieldValue.arrayUnion(me.uid)
+            }).then(function () {
+              profile.familyId = fid;
+              profile.isFamilyOwner = false;
+              return profileRef().update({ familyId: fid, isFamilyOwner: false });
+            }).then(function () { return writeMirror(); })
+              .then(function () { return stampFamily(fid); })
+              .then(function () {
+                familyListenKey = "";
+                startFamilyListeners();
+                showFamilyMsg("You've joined the family — welcome in. The family owner can now see your entries in their combined view.", false);
+                render();
+              });
+          }).catch(function () { showFamilyMsg("We couldn't join that family just now — check the code and your connection, and try again.", true); });
+        });
+        $("leaveFamilyBtn").addEventListener("click", function () {
+          if (!profile.familyId || profile.isFamilyOwner) return;
+          if (!window.confirm("Leave this family? Your entries stay yours, and the family owner will no longer see them.")) return;
+          var fid = profile.familyId;
+          db.collection("families").doc(fid).update({
+            memberUids: firebase.firestore.FieldValue.arrayRemove(me.uid)
+          }).catch(function () {}).then(function () {
+            return db.collection("families").doc(fid).collection("members").doc(me.uid).delete().catch(function () {});
+          }).then(function () {
+            profile.familyId = null;
+            return profileRef().update({ familyId: null });
+          }).then(function () { return stampFamily(null); })
+            .then(function () {
+              familyListenKey = "";
+              startFamilyListeners();
+              showFamilyMsg("You've left the family. Your entries are private to you again.", false);
+              render();
+            });
+        });
+        function removeMember(uid) {
+          if (!familyDoc) return;
+          var mir = familyMirrors[uid];
+          var name = mir && mir.name ? mir.name : "this member";
+          if (!window.confirm("Remove " + name + " from the family? They'll keep their own entries, and you'll no longer see them here.")) return;
+          var fid = profile.familyId;
+          db.collection("families").doc(fid).update({
+            memberUids: firebase.firestore.FieldValue.arrayRemove(uid)
+          }).then(function () {
+            // The mirror copy goes too. The member's own profile and entry stamps
+            // are theirs to clear — their app notices they're no longer listed
+            // and tidies up on its own (see onFamilyGone).
+            return db.collection("families").doc(fid).collection("members").doc(uid).delete().catch(function () {});
+          }).then(function () {
+            showFamilyMsg("Removed. Your combined view updates right away.", false);
+            render();
+          }).catch(function () { showFamilyMsg("We couldn't remove them just now — try again.", true); });
+        }
+        $("copyCodeBtn").addEventListener("click", function () {
+          var code = familyDoc && familyDoc.code ? familyDoc.code : "";
+          if (!code) return;
+          function done() { showFamilyMsg("Code copied — send it to your family member.", false); }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(done, function () { showFamilyMsg("Copy the code by hand: " + code, false); });
+          } else {
+            showFamilyMsg("Copy the code by hand: " + code, false);
+          }
+        });
+        $("newCodeBtn").addEventListener("click", function () {
+          if (!familyDoc) return;
+          var fid = profile.familyId;
+          var oldCode = familyDoc.code;
+          var code = genCode();
+          db.collection("invites").doc(code).set({ familyId: fid, ownerUid: me.uid })
+            .then(function () { return db.collection("families").doc(fid).update({ code: code }); })
+            .then(function () { if (oldCode && oldCode !== code) return db.collection("invites").doc(oldCode).delete().catch(function () {}); })
+            .then(function () { showFamilyMsg("New code ready — the old one no longer works.", false); render(); })
+            .catch(function () { showFamilyMsg("We couldn't make a new code just now — try again.", true); });
+        });
+        $("deleteFamilyBtn").addEventListener("click", function () {
+          if (!profile.isFamilyOwner || !familyDoc) return;
+          if (!window.confirm("Delete the family? Members keep their own entries, but the family link and invite code go away for everyone.")) return;
+          var fid = profile.familyId;
+          var code = familyDoc.code;
+          var jobs = [];
+          if (code) jobs.push(db.collection("invites").doc(code).delete().catch(function () {}));
+          Object.keys(familyMirrors).forEach(function (u) {
+            jobs.push(db.collection("families").doc(fid).collection("members").doc(u).delete().catch(function () {}));
+          });
+          jobs.push(db.collection("families").doc(fid).collection("members").doc(me.uid).delete().catch(function () {}));
+          Promise.all(jobs).then(function () {
+            return db.collection("families").doc(fid).delete();
+          }).then(function () {
+            profile.familyId = null;
+            profile.isFamilyOwner = false;
+            viewMode = "personal";
+            els.viewCombined.hidden = true;
+            return profileRef().update({ familyId: null, isFamilyOwner: false });
+          }).then(function () { return stampFamily(null); })
+            .then(function () {
+              familyListenKey = "";
+              startFamilyListeners();
+              showFamilyMsg("Family deleted. Everyone's own entries are untouched.", false);
+              render();
+            })
+            .catch(function () { showFamilyMsg("We couldn't delete the family just now — try again.", true); });
+        });
+
+        // ---------- Add / edit / delete entries ----------
+        function showError(msg) { showFormError(els.formError, msg); }
+        function makeTemplateDoc(data) {
+          return db.collection("recurring").add({
+            ownerUid: me.uid, familyId: profile.familyId || null,
+            type: data.type, day: Number(data.date.slice(8, 10)),
+            category: data.category, desc: data.desc, amount: data.amount,
+            currency: state.currency, active: true,
+            startMonth: data.date.slice(0, 7), exceptions: []
+          });
+        }
+        els.form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var amount = parseFloat(els.entryAmount.value);
+          var date = els.entryDate.value;
+          if (!date) { showError("Please pick a date."); return; }
+          if (isNaN(amount) || amount <= 0) { showError("Please enter an amount greater than $0."); return; }
+          showError("");
+          var data = {
+            type: formType, date: date, category: els.entryCategory.value,
+            desc: els.entryDesc.value.trim(), amount: Math.round(amount * 100) / 100
+          };
+          var wantsMonthly = els.entryRecurring.checked;
+          var finish = function () {
+            els.entryDesc.value = "";
+            els.entryAmount.value = "";
+            els.entryRecurring.checked = false;
+            els.recurNote.className = "recur-note";
+            state.month = data.date.slice(0, 7);
+            els.monthPicker.value = state.month;
+            render();
+          };
+          if (editingId) {
+            var tx = findEntry(editingId);
+            var jobs = [];
+            if (tx && tx.recurId) {
+              // Editing one month of a monthly entry changes this month only:
+              // the entry becomes a one-off and the monthly template skips this month.
+              jobs.push(db.collection("recurring").doc(tx.recurId).update({
+                exceptions: firebase.firestore.FieldValue.arrayUnion(tx.date.slice(0, 7))
+              }).catch(function () {}));
+            }
+            var entryId = editingId;
+            stopEdit();
+            var chain = Promise.all(jobs);
+            if (wantsMonthly) {
+              chain = chain.then(function () { return makeTemplateDoc(data); })
+                .then(function (ref) {
+                  return db.collection("entries").doc(entryId).update({
+                    type: data.type, date: data.date, category: data.category,
+                    desc: data.desc, amount: data.amount, recurringId: ref.id
+                  });
+                });
+            } else {
+              chain = chain.then(function () {
+                return db.collection("entries").doc(entryId).update({
+                  type: data.type, date: data.date, category: data.category,
+                  desc: data.desc, amount: data.amount, recurringId: null
+                });
+              });
+            }
+            chain.then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
+          } else if (wantsMonthly) {
+            makeTemplateDoc(data).then(function (ref) {
+              return addEntry({
+                type: data.type, date: data.date, category: data.category,
+                desc: data.desc, amount: data.amount, recurId: ref.id, createdAt: Date.now()
+              });
+            }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
+          } else {
+            addEntry({
+              type: data.type, date: data.date, category: data.category,
+              desc: data.desc, amount: data.amount, recurId: null, createdAt: Date.now()
+            }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
+          }
+        });
+        function startEdit(id) {
+          var t = findEntry(id);
+          if (!t) return;
+          editingId = id;
+          setType(t.type);
+          els.entryCategory.value = t.category;
+          els.entryDate.value = t.date;
+          els.entryAmount.value = t.amount;
+          els.entryDesc.value = t.desc;
+          els.entryRecurring.checked = false;
+          els.recurNote.className = "recur-note" + (t.recurId ? " show" : "");
+          els.submitBtn.textContent = "Save changes";
+          els.cancelEdit.className = "btn btn-ghost btn-cancel show";
+          showError("");
+          els.entryAmount.focus();
+          if (window.scrollTo) {
+            var y = els.form.getBoundingClientRect().top + (window.pageYOffset || 0) - 20;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }
+        function stopEdit() {
+          editingId = null;
+          els.submitBtn.textContent = formType === "income" ? "Add income" : "Add expense";
+          els.cancelEdit.className = "btn btn-ghost btn-cancel";
+          els.entryRecurring.checked = false;
+          els.recurNote.className = "recur-note";
+        }
+        els.cancelEdit.addEventListener("click", function () {
+          stopEdit();
+          els.entryDesc.value = ""; els.entryAmount.value = ""; showError("");
+        });
+        function deleteTx(id) {
+          var removed = findEntry(id);
+          var jobs = [];
+          if (removed && removed.recurId) {
+            // Deleting one month of a monthly entry removes that month only —
+            // the monthly entry carries on for the other months.
+            jobs.push(db.collection("recurring").doc(removed.recurId).update({
+              exceptions: firebase.firestore.FieldValue.arrayUnion(removed.date.slice(0, 7))
+            }).catch(function () {}));
+          }
+          jobs.push(db.collection("entries").doc(id).delete());
+          if (editingId === id) stopEdit();
+          Promise.all(jobs).catch(function () {});
+        }
+        function duplicateTx(id) {
+          var src = findEntry(id);
+          if (!src) return;
+          addEntry({
+            type: src.type, date: todayStr(), category: src.category,
+            desc: src.desc, amount: src.amount, recurId: null, createdAt: Date.now()
+          }).then(function () {
+            state.month = monthKey(today);
+            els.monthPicker.value = state.month;
+            render();
+          }).catch(function () {});
+        }
+
+        // ---------- Export / import ----------
+        function download(filename, text, mime) {
+          var blob = new Blob([text], { type: mime });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url; a.download = filename;
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+        }
+        function fileBase() {
+          var n = (state.name || "my").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "my";
+          return n + "-budget-tracker";
+        }
+        function csvCell(v) {
+          v = String(v == null ? "" : v);
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }
+        function stampExport() {
+          state.lastExportAt = Date.now();
+          profile.lastExportAt = state.lastExportAt;
+          saveProfile({ lastExportAt: state.lastExportAt });
+          updateNudge();
+        }
+        $("exportBtn").addEventListener("click", function () {
+          var payload = {
+            name: state.name, budgets: state.budgets,
+            transactions: myEntries.map(function (t) {
+              return { type: t.type, date: t.date, category: t.category, desc: t.desc, amount: t.amount };
+            }),
+            customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats,
+            recurring: myRecurring.map(function (r) {
+              var ex = {};
+              (r.exceptions || []).forEach(function (m) { ex[m] = true; });
+              return { type: r.type, day: r.day, category: r.category, desc: r.desc, amount: r.amount, startMonth: r.startMonth, exceptions: ex };
+            }),
+            currency: state.currency
+          };
+          download(fileBase() + "-backup.json", JSON.stringify(payload, null, 2), "application/json");
+          stampExport();
+          showImportMsg("Backup exported — keep the file somewhere safe.", false);
+        });
+        $("csvBtn").addEventListener("click", function () {
+          var lines = ["Date,Type,Category,Description,Amount,Currency"];
+          myEntries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (t) {
+            lines.push([t.date, t.type, csvCell(t.category), csvCell(t.desc), t.amount.toFixed(2), state.currency].join(","));
+          });
+          download(fileBase() + ".csv", lines.join("\n"), "text/csv");
+          stampExport();
+        });
+        function showImportMsg(msg, isErr) {
+          els.importMsg.textContent = msg;
+          els.importMsg.className = "import-msg show" + (isErr ? " err" : "");
+        }
+        function parseCSV(text) {
+          var rows = [], row = [], cell = "", inQ = false;
+          for (var i = 0; i < text.length; i++) {
+            var ch = text[i];
+            if (inQ) {
+              if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else inQ = false; }
+              else cell += ch;
+            } else if (ch === '"') inQ = true;
+            else if (ch === ",") { row.push(cell); cell = ""; }
+            else if (ch === "\n" || ch === "\r") {
+              if (ch === "\r" && text[i + 1] === "\n") i++;
+              row.push(cell); cell = "";
+              if (row.length > 1 || row[0] !== "") rows.push(row);
+              row = [];
+            } else cell += ch;
+          }
+          row.push(cell);
+          if (row.length > 1 || row[0] !== "") rows.push(row);
+          return rows;
+        }
+        $("importFile").addEventListener("change", function () {
+          var file = this.files && this.files[0];
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function () {
+            try {
+              var text = String(reader.result || "");
+              var newEntries = [];
+              var baseTime = Date.now();
+              if (text.trim().charAt(0) === "{") {
+                var data = JSON.parse(text);
+                // Bring in any categories the backup added (older backups simply don't have these lists).
+                var patch = {};
+                if (Array.isArray(data.customExpenseCats)) data.customExpenseCats.forEach(function (c) {
+                  c = String(c || "").trim();
+                  if (c && EXPENSE_CATS.indexOf(c) === -1 && state.customExpenseCats.indexOf(c) === -1) {
+                    state.customExpenseCats.push(c);
+                    if (state.budgets[c] == null) state.budgets[c] = 0;
+                  }
+                });
+                if (Array.isArray(data.customIncomeCats)) data.customIncomeCats.forEach(function (c) {
+                  c = String(c || "").trim();
+                  if (c && INCOME_CATS.indexOf(c) === -1 && state.customIncomeCats.indexOf(c) === -1) state.customIncomeCats.push(c);
+                });
+                if (data.budgets) expenseCats().forEach(function (c) {
+                  var v = parseFloat(data.budgets[c]); state.budgets[c] = isNaN(v) || v < 0 ? 0 : v;
+                });
+                patch.customExpenseCats = state.customExpenseCats;
+                patch.customIncomeCats = state.customIncomeCats;
+                patch.budgets = state.budgets;
+                if (!state.name && data.name) { state.name = String(data.name); patch.name = state.name; }
+                profile.customExpenseCats = state.customExpenseCats;
+                profile.customIncomeCats = state.customIncomeCats;
+                profile.budgets = state.budgets;
+                saveProfile(patch);
+                if (Array.isArray(data.transactions)) {
+                  data.transactions.forEach(function (t, idx) {
+                    var amt = parseFloat(t.amount);
+                    if (t.date && !isNaN(amt) && amt > 0 && (t.type === "income" || t.type === "expense")) {
+                      newEntries.push({
+                        type: t.type, date: String(t.date).slice(0, 10),
+                        category: String(t.category || "Other"), desc: String(t.desc || ""),
+                        amount: amt, recurId: null, createdAt: baseTime + idx
+                      });
+                    }
+                  });
+                }
+              } else {
+                var rows = parseCSV(text);
+                rows.forEach(function (r, idx) {
+                  if (idx === 0 && /date/i.test(r[0] || "")) return;
+                  var amt = parseFloat(r[4]);
+                  if (r[0] && !isNaN(amt) && amt > 0) {
+                    newEntries.push({
+                      type: (r[1] || "").toLowerCase() === "income" ? "income" : "expense",
+                      date: String(r[0]).slice(0, 10), category: r[2] || "Other", desc: r[3] || "",
+                      amount: amt, recurId: null, createdAt: baseTime + idx
+                    });
+                  }
+                });
+              }
+              if (!newEntries.length) { showImportMsg("No entries found in that file — nothing was imported.", true); return; }
+              var chain = Promise.resolve();
+              for (var i = 0; i < newEntries.length; i += 450) {
+                (function (chunk) {
+                  chain = chain.then(function () {
+                    var b = db.batch();
+                    chunk.forEach(function (t) { b.set(db.collection("entries").doc(), entryDocData(t)); });
+                    return b.commit();
+                  });
+                })(newEntries.slice(i, i + 450));
+              }
+              chain.then(function () {
+                showImportMsg("Imported " + newEntries.length + (newEntries.length === 1 ? " entry." : " entries."), false);
+                render();
+              }).catch(function () {
+                showImportMsg("Those entries couldn't be saved just now — check your connection and try again.", true);
+              });
+            } catch (e) {
+              showImportMsg("That file could not be read. Import a backup (.json) or CSV exported from this tracker.", true);
+            }
+          };
+          reader.readAsText(file);
+          this.value = "";
+        });
+
+        // ---------- Go ----------
+        setType("expense");
+      })();
+    </script>
+  </body>
+</html>
