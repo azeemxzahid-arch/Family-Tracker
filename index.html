@@ -173,7 +173,7 @@
         width: 100%; border: 1px solid var(--line); background: var(--bg);
         border-radius: 10px; padding: 9px 12px;
       }
-      .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
       .form-error { display: none; color: var(--red); font-weight: 600; font-size: 0.92rem; margin: 0 0 12px; }
       .form-error.show { display: block; }
       .btn {
@@ -245,6 +245,13 @@
       }
       .tx .actions button:hover { background: var(--surface-2); }
       .tx .actions button.del { color: var(--red); }
+      .tx.excluded { opacity: 0.55; }
+      .excl-bar { margin-bottom: 10px; }
+      .excl-bar button {
+        border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+        padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+      }
+      .excl-bar button:hover { background: var(--surface-2); }
 
       /* ---------- Data row ---------- */
       .data-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 18px; }
@@ -261,6 +268,7 @@
       .view-toggle button { border: 0; border-radius: 8px; background: transparent; font-weight: 700; cursor: pointer; padding: 10px 12px; }
       .view-toggle button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); color: var(--green-dark); }
       .view-note { margin: 8px 0 0; color: var(--muted); font-size: 0.9rem; }
+      .totals-note { margin: 10px 2px 0; color: var(--muted); font-size: 0.9rem; }
       .family-card { margin-bottom: 18px; border: 2px solid var(--green); }
       .fam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
       @media (max-width: 700px) { .fam-grid { grid-template-columns: 1fr; } }
@@ -286,6 +294,8 @@
       .member-row .mnums { color: var(--ink-soft); font-size: 0.92rem; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 2px 14px; }
       .member-row .mnums b.in { color: var(--green); } .member-row .mnums b.out { color: var(--red); }
       .member-row button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer; color: var(--red); }
+      .member-row button.member-toggle { color: var(--ink); white-space: nowrap; }
+      .member-row button.member-toggle[aria-pressed="true"] { background: var(--green-tint); color: var(--green-dark); border-color: var(--green-dark); }
       .owner-chip { background: var(--green-tint); color: var(--green-dark); border-radius: 99px; padding: 1px 9px; font-weight: 700; }
       .combined-msg { font-size: 0.9rem; font-weight: 600; color: var(--green-dark); display: none; margin: 0 0 10px; }
       .combined-msg.show { display: block; } .combined-msg.err { color: var(--red); }
@@ -305,9 +315,30 @@
       .check-field input { width: 22px; height: 22px; min-height: 22px; margin: 1px 0 0; accent-color: var(--green); flex: 0 0 auto; }
       .check-field label { font-weight: 600; font-size: 0.95rem; }
       .check-field .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+      .freq-field { margin: -4px 0 14px 32px; display: grid; gap: 8px; }
+      .freq-row { display: flex; gap: 10px; align-items: flex-start; }
+      .freq-row input { width: 22px; height: 22px; min-height: 22px; margin: 1px 0 0; accent-color: var(--green); flex: 0 0 auto; }
+      .freq-row label { font-weight: 600; font-size: 0.95rem; }
+      .freq-row .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+      .anchor-field { margin-left: 32px; }
       .recur-note { display: none; background: var(--amber-tint); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; margin: 0 0 14px; }
       .recur-note.show { display: block; }
       .chip.monthly { background: var(--green-tint); color: var(--green-dark); text-transform: none; letter-spacing: 0; font-size: 0.78rem; }
+      .chip.estimated { background: var(--amber-tint); color: var(--amber); text-transform: none; letter-spacing: 0; font-size: 0.78rem; }
+      /* A converted value riding under an amount shown in its own currency. */
+      .conv { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+
+      /* ---------- Bills due ---------- */
+      .bills-card { margin-bottom: 18px; }
+      .bill-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-items: start; margin-bottom: 10px; }
+      .bill-row .rname { font-weight: 700; }
+      .bill-row .rmeta { color: var(--muted); font-size: 0.88rem; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+      .bill-row .ramt { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+      .bill-row .ramt.in { color: var(--green); } .bill-row .ramt.out { color: var(--red); }
+      .bill-status { font-size: 0.85rem; color: var(--muted); text-align: right; margin-top: 2px; }
+      .bill-status.confirm { color: var(--amber); font-weight: 700; }
+      .bill-person { font-size: 1rem; margin: 16px 0 8px; }
+      .bill-person:first-child { margin-top: 0; }
       .recur-list { display: grid; gap: 10px; }
       .recur-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-items: start; }
       .recur-row .rname { font-weight: 700; }
@@ -535,7 +566,7 @@
           <div id="combinedInfo" hidden>
             <div class="rates-area" id="ratesArea" hidden>
               <h3>Exchange rates</h3>
-              <p class="hint" style="margin-bottom:10px;">Someone in the family tracks in a different currency. Set the rate here so their entries can be added into the family totals in your currency.</p>
+              <p class="hint" style="margin-bottom:10px;">Entries in a different currency need an exchange rate before they can be added into the family totals in your currency. Rates are per currency — one person's money can be in several currencies.</p>
               <div id="rateFields"></div>
               <div id="rateNotes"></div>
             </div>
@@ -577,6 +608,13 @@
           <p class="sub" id="sumBudgetSub">Set budgets below to track against them</p>
           <div class="meter"><div id="budgetMeter"></div></div>
         </div>
+      </section>
+      <p class="totals-note" id="monitorNote" hidden></p>
+
+      <section class="card bills-card" aria-labelledby="billsTitle">
+        <h2 id="billsTitle">Bills due</h2>
+        <p class="hint" id="billsHint">Your repeating bills for the month you're looking at.</p>
+        <div id="billsList"></div>
       </section>
 
       <section class="card compare-card" aria-labelledby="compareTitle">
@@ -623,6 +661,10 @@
                   <label for="entryAmount" id="amountLabel">Amount ($)</label>
                   <input type="number" id="entryAmount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required />
                 </div>
+                <div class="field">
+                  <label for="entryCurrency">Currency</label>
+                  <select id="entryCurrency" aria-label="Currency of this entry"></select>
+                </div>
               </div>
               <div class="field">
                 <label for="entryCategory">Category</label>
@@ -634,11 +676,36 @@
               </div>
               <div class="check-field">
                 <input type="checkbox" id="entryRecurring" />
-                <label for="entryRecurring">Repeats monthly
-                  <span class="sub">For things like salary, rent or a subscription — added on the same day every month, so you only type it once.</span>
+                <label for="entryRecurring">Repeats
+                  <span class="sub">For things like salary, rent or a subscription — set it up once and it's added for you each time it's due.</span>
                 </label>
               </div>
-              <p class="recur-note" id="recurNote">This entry repeats monthly. If you save changes here, they apply to this month only — the monthly entry itself stays as it was.</p>
+              <div class="freq-field" id="frequencyField" hidden>
+                <div class="freq-row">
+                  <input type="radio" name="entryFrequency" id="freqMonthly" value="monthly" checked />
+                  <label for="freqMonthly">Monthly
+                    <span class="sub">Added on the same day every month.</span>
+                  </label>
+                </div>
+                <div class="freq-row">
+                  <input type="radio" name="entryFrequency" id="freqBiweekly" value="biweekly" />
+                  <label for="freqBiweekly">Every 2 weeks
+                    <span class="sub">Added every 2 weeks — the usual pattern for salary.</span>
+                  </label>
+                </div>
+              </div>
+              <div class="field anchor-field" id="anchorField" hidden>
+                <label for="entryAnchor">First occurrence date</label>
+                <input type="date" id="entryAnchor" />
+                <p class="hint">It repeats every 2 weeks from this date. For salary, pick your next payday.</p>
+              </div>
+              <div class="check-field" id="variableField" hidden>
+                <input type="checkbox" id="entryVariable" />
+                <label for="entryVariable">Amount varies each time
+                  <span class="sub">For bills like electricity or gas, where the amount changes. Each entry is marked "Estimated" until you type in the real amount.</span>
+                </label>
+              </div>
+              <p class="recur-note" id="recurNote">This entry is part of a repeating series. If you save changes here, they apply to this entry only — the repeating series itself stays as it was.</p>
               <p class="form-error" id="formError"></p>
               <button type="submit" class="btn btn-primary" id="submitBtn">Add expense</button>
               <button type="button" class="btn btn-ghost btn-cancel" id="cancelEdit">Cancel editing</button>
@@ -646,8 +713,8 @@
           </section>
 
           <section class="card" id="recurringCard" aria-labelledby="recurTitle" hidden>
-            <h2 id="recurTitle">Repeats every month</h2>
-            <p class="hint">These entries add themselves each month. Stop one here and it won't be added again — entries already added stay in your list.</p>
+            <h2 id="recurTitle">Repeating entries</h2>
+            <p class="hint">These entries add themselves on their schedule — monthly or every 2 weeks. Stop one here and it won't be added again — entries already added stay in your list.</p>
             <div class="recur-list" id="recurringList"></div>
           </section>
 
@@ -655,6 +722,12 @@
             <h2 id="budgetTitle">Monthly budgets</h2>
             <p class="hint" id="budgetHint">Set what you want to spend per category each month. Bars turn amber at 80% and red when you go over.</p>
             <div class="budget-list" id="budgetList"></div>
+            <div class="rates-area" id="myRatesArea" hidden>
+              <h3>Exchange rates</h3>
+              <p class="hint" style="margin-bottom:10px;">Some of your entries are in a different currency from the one you track in. Set the rate here so those entries can be added into your totals, changed into your currency.</p>
+              <div id="myRateFields"></div>
+              <div id="myRateNotes"></div>
+            </div>
             <div class="cat-manage">
               <h3>Your own categories</h3>
               <p class="hint" style="margin-bottom:0;">Don't see a category that fits? Add your own — it'll show up in the entry form, the budgets above and the breakdown.</p>
@@ -690,6 +763,9 @@
                 <option value="expense">Expenses only</option>
               </select>
             </div>
+            <div class="excl-bar" id="exclBar" hidden>
+              <button type="button" id="showExcludedBtn" aria-pressed="false">Show excluded (0)</button>
+            </div>
             <ul class="tx-list" id="txList"></ul>
             <p class="empty" id="txEmpty">No entries yet for this month.<br />Add your first income or expense using the form.</p>
           </section>
@@ -712,7 +788,7 @@
         <p class="import-msg" id="importMsg" role="status"></p>
       </div>
 
-      <footer>Amounts are shown in the currency picked at the top of the page. Budgets apply to every month; entries belong to the month of their date.</footer>
+      <footer>Totals are shown in the currency picked at the top of the page — entries in another currency are changed into it at the exchange rates you set. Budgets apply to every month; entries belong to the month of their date.</footer>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -794,6 +870,38 @@
           var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
           return d.toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" });
         }
+        // ---------- Every-2-weeks (biweekly) date math ----------
+        // A biweekly series is phased to an anchor date: it falls on the
+        // anchor and every 14 days either side of it. All math is done on
+        // whole days (UTC) so daylight-saving shifts can't move a payday.
+        function dateParts(str) { var p = String(str).split("-"); return { y: Number(p[0]), m: Number(p[1]), d: Number(p[2]) }; }
+        function dateToStr(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+        function addDaysStr(str, n) { var p = dateParts(str); return dateToStr(new Date(p.y, p.m - 1, p.d + n)); }
+        function diffDaysStr(a, b) {
+          var pa = dateParts(a), pb = dateParts(b);
+          return Math.round((Date.UTC(pb.y, pb.m - 1, pb.d) - Date.UTC(pa.y, pa.m - 1, pa.d)) / 86400000);
+        }
+        function isBiweekly(tpl) { return !!tpl && tpl.frequency === "biweekly"; }
+        // Every date a biweekly template falls on within one month — usually
+        // two, sometimes three (and, in the anchor's own month, dates before
+        // the anchor itself, since the series is a phase, not a hard start).
+        function biweeklyDatesInMonth(tpl, key) {
+          if (!tpl || !tpl.anchorDate) return [];
+          var first = key + "-01";
+          var last = key + "-" + pad(daysInMonth(key));
+          var k = Math.ceil(diffDaysStr(tpl.anchorDate, first) / 14);
+          var out = [];
+          var d = addDaysStr(tpl.anchorDate, k * 14);
+          while (d <= last) { out.push(d); d = addDaysStr(d, 14); }
+          return out;
+        }
+        // The next date a biweekly template falls on, today or later.
+        function nextBiweeklyDate(tpl) {
+          if (!tpl || !tpl.anchorDate) return null;
+          var t = todayStr();
+          if (tpl.anchorDate >= t) return tpl.anchorDate;
+          return addDaysStr(tpl.anchorDate, Math.ceil(diffDaysStr(tpl.anchorDate, t) / 14) * 14);
+        }
         function esc(s) {
           return String(s == null ? "" : s)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -805,10 +913,11 @@
         var profile = null;       // users/{uid} data
         var profileExists = false;
         var myEntries = [];       // my entries, local shape {id, type, date, category, desc, amount, recurId, createdAt}
-        var myRecurring = [];     // my ACTIVE templates {id, type, day, category, desc, amount, startMonth, exceptions[]}
+        var myRecurring = [];     // my ACTIVE templates {id, type, frequency, day, anchorDate, category, desc, amount, startMonth, exceptions[], exceptionDates[]}
         var familyDoc = null;     // families/{familyId} data, when in a family
         var familyMirrors = {};   // uid -> families/{fid}/members/{uid} data (owner's combined view)
         var familyEntries = [];   // all entries with my familyId (owner's combined view)
+        var familyRecurring = []; // all repeating templates with my familyId (owner's combined view)
         var state = {
           month: monthKey(today),
           name: "",
@@ -817,12 +926,15 @@
           customExpenseCats: [],
           customIncomeCats: [],
           rates: {},
+          memberTotals: {},
+          excludedEntries: [],
           lastExportAt: 0
         };
         EXPENSE_CATS.forEach(function (c) { state.budgets[c] = 0; });
         var formType = "expense";
         var editingId = null;
         var viewMode = "personal"; // "personal" | "combined" (combined is owner-only)
+        var showExcluded = false;  // combined view: reveal entries the owner excluded, dimmed
         var unsubs = [];           // active Firestore listeners, cleared on sign-out
         var cleaningFamily = false;
 
@@ -891,23 +1003,31 @@
           sumBudget: $("sumBudget"), sumBudgetSub: $("sumBudgetSub"), budgetMeter: $("budgetMeter"), budgetStat: $("budgetStat"),
           typeExpense: $("typeExpense"), typeIncome: $("typeIncome"),
           form: $("entryForm"), entryDate: $("entryDate"), entryAmount: $("entryAmount"),
+          entryCurrency: $("entryCurrency"),
           entryCategory: $("entryCategory"), entryDesc: $("entryDesc"),
           formError: $("formError"), submitBtn: $("submitBtn"), cancelEdit: $("cancelEdit"),
           budgetList: $("budgetList"), breakdown: $("breakdown"),
           txList: $("txList"), txEmpty: $("txEmpty"), txSearch: $("txSearch"), txFilter: $("txFilter"),
+          exclBar: $("exclBar"), showExcludedBtn: $("showExcludedBtn"),
           importMsg: $("importMsg"),
           viewPersonal: $("viewPersonal"), viewCombined: $("viewCombined"), viewNote: $("viewNote"),
           familyHint: $("familyHint"), familyMsg: $("familyMsg"),
           famNone: $("famNone"), famName: $("famName"), joinCode: $("joinCode"),
           famOwner: $("famOwner"), ownerCode: $("ownerCode"), ownerMemberList: $("ownerMemberList"),
           combinedInfo: $("combinedInfo"), ratesArea: $("ratesArea"), rateFields: $("rateFields"), rateNotes: $("rateNotes"),
+          myRatesArea: $("myRatesArea"), myRateFields: $("myRateFields"), myRateNotes: $("myRateNotes"),
           combinedMsg: $("combinedMsg"), memberList: $("memberList"), combinedEmpty: $("combinedEmpty"),
+          monitorNote: $("monitorNote"),
           famMember: $("famMember"), memberInfoText: $("memberInfoText"),
           addHint: $("addHint"), budgetHint: $("budgetHint"), breakHint: $("breakHint"), txHint: $("txHint"),
           entryRecurring: $("entryRecurring"), recurNote: $("recurNote"),
+          frequencyField: $("frequencyField"), freqMonthly: $("freqMonthly"), freqBiweekly: $("freqBiweekly"),
+          anchorField: $("anchorField"), entryAnchor: $("entryAnchor"),
+          entryVariable: $("entryVariable"), variableField: $("variableField"),
           recurringCard: $("recurringCard"), recurringList: $("recurringList"),
           catName: $("catName"), catType: $("catType"), catAddBtn: $("catAddBtn"),
           catMsg: $("catMsg"), customCatList: $("customCatList"),
+          billsTitle: $("billsTitle"), billsHint: $("billsHint"), billsList: $("billsList"),
           compareHint: $("compareHint"),
           cmpIncome: $("cmpIncome"), cmpIncomeSub: $("cmpIncomeSub"),
           cmpExpenses: $("cmpExpenses"), cmpExpensesSub: $("cmpExpensesSub"),
@@ -928,6 +1048,7 @@
         currencyOptions(els.caCurrency, "CAD");
         currencyOptions(els.suCurrency, "CAD");
         currencyOptions(els.currencySelect, "CAD");
+        currencyOptions(els.entryCurrency, "CAD");
 
         // ---------- Sync status ----------
         var lastSyncAt = 0;
@@ -955,10 +1076,29 @@
         function spentByCat(txs) {
           var map = {};
           activeExpenseCats().forEach(function (c) { map[c] = 0; });
-          txs.forEach(function (t) { if (t.type === "expense") map[t.category] = (map[t.category] || 0) + t.amount; });
+          txs.forEach(function (t) { if (t.type === "expense" && t.counted !== false) map[t.category] = (map[t.category] || 0) + t.amount; });
           return map;
         }
         function myName() { return state.name || "Me"; }
+        // Whether a family member's money counts in my Combined totals. The
+        // owner's profile keeps a memberTotals map holding only the members
+        // switched to "just monitor" (false); anyone not in the map counts,
+        // which is how Combined view has always behaved.
+        function countsInTotals(uid) { return state.memberTotals[uid] !== false; }
+        // Whether the owner has excluded this one entry from his Combined
+        // view. Exclusions live only on the owner's own profile, as a list
+        // of entry ids — he can read members' entries but never write to
+        // them, so the flag can't live on the entry itself. A member's own
+        // view of their entries is never affected.
+        function isExcluded(id) { return state.excludedEntries.indexOf(id) !== -1; }
+        function setEntryExcluded(id, excluded) {
+          var i = state.excludedEntries.indexOf(id);
+          if (excluded && i === -1) state.excludedEntries.push(id);
+          if (!excluded && i !== -1) state.excludedEntries.splice(i, 1);
+          profile.excludedEntries = state.excludedEntries;
+          saveProfile({ excludedEntries: state.excludedEntries });
+          render();
+        }
         // The rate that changes a family member's money into the viewer's currency:
         // 1 when the currencies match, the saved rate when one is set, or null when
         // no rate is set yet — in which case that member stays out of the totals.
@@ -968,16 +1108,52 @@
           var r = parseFloat(state.rates[cur]);
           return isNaN(r) || r <= 0 ? null : r;
         }
+        // The currency an entry (or repeating template) is actually in. Docs
+        // written before per-entry currency existed were all in their author's
+        // home currency, which is the fallback the caller passes in.
+        function entryCur(t, fallback) {
+          if (validCurrency(t && t.currency)) return t.currency;
+          return validCurrency(fallback) ? fallback : state.currency;
+        }
+        // The rate that changes money in `code` into the viewer's currency:
+        // 1 for the viewer's own currency, the saved rate, or null when no
+        // rate is set yet — money in that currency stays out of the totals.
+        function rateFor(code) {
+          if (code === state.currency) return 1;
+          var r = parseFloat(state.rates[code]);
+          return isNaN(r) || r <= 0 ? null : r;
+        }
+        // Tag an entry for display and totals. `amount` becomes the value in
+        // the viewer's currency — that's what every total sums — while
+        // `origAmount` and `currency` keep what was actually entered, in the
+        // currency it was entered in. An entry whose currency has no rate yet
+        // is flagged inTotals:false and contributes 0: it still shows in the
+        // list, in its own currency, but is never summed unconverted.
+        // `counted` is separate from inTotals: it is the family owner's
+        // choice about whether an entry adds into his Combined totals. A
+        // member set to "just monitor" has counted:false, and so does a
+        // single entry he excluded by hand (`excluded`) — either way the
+        // entry can still list, but no total includes it.
+        function tagTx(t, ownerName, mine, fallbackCur, counted, excluded) {
+          var cur = entryCur(t, fallbackCur);
+          var rate = rateFor(cur);
+          var inTotals = rate !== null;
+          return Object.assign({}, t, {
+            owner: ownerName, mine: mine, currency: cur,
+            origAmount: t.amount,
+            amount: inTotals ? convAmt(t.amount, rate) : 0,
+            inTotals: inTotals,
+            counted: counted !== false && !excluded,
+            excluded: !!excluded
+          });
+        }
         // Merged transactions for the selected month, each tagged with its owner.
         function activeTxs() {
-          if (!isCombined()) return monthTxs().map(function (t) { return Object.assign({}, t, { owner: myName(), mine: true }); });
           var out = [];
-          monthTxs().forEach(function (t) { out.push(Object.assign({}, t, { owner: myName(), mine: true })); });
-          family.forEach(function (m) {
-            var rate = memberRate(m);
-            if (rate === null) return; // no exchange rate yet — left out of the totals, never added unconverted
+          monthTxs().forEach(function (t) { out.push(tagTx(t, myName(), true, state.currency)); });
+          if (isCombined()) family.forEach(function (m) {
             m.transactions.forEach(function (t) {
-              if (t.date.slice(0, 7) === state.month) out.push(Object.assign({}, t, { owner: m.name, mine: false, amount: convAmt(t.amount, rate) }));
+              if (t.date.slice(0, 7) === state.month) out.push(tagTx(t, m.name, false, m.currency, countsInTotals(m.uid), isExcluded(t.id)));
             });
           });
           return out;
@@ -989,6 +1165,7 @@
           var sum = {};
           cats.forEach(function (c) { sum[c] = state.budgets[c] || 0; });
           family.forEach(function (m) {
+            if (!countsInTotals(m.uid)) return; // monitor only — their budgets stay out of the combined budgets too
             var rate = memberRate(m);
             if (rate === null) return; // no exchange rate yet — their budgets stay out too
             cats.forEach(function (c) { sum[c] += (m.budgets[c] || 0) * rate; });
@@ -997,16 +1174,25 @@
         }
         function peopleCount() { return 1 + family.length; }
         // Income/expense totals for any month, respecting the active view.
+        // Every entry is changed into the viewer's currency on its OWN
+        // currency (not its author's home currency); an entry in a currency
+        // with no rate set is left out — never added unconverted.
         function totalsForMonth(key) {
           var inc = 0, exp = 0;
-          function add(t) { if (t.type === "income") inc += t.amount; else exp += t.amount; }
-          myEntries.forEach(function (t) { if (t.date.slice(0, 7) === key) add(t); });
-          if (isCombined()) family.forEach(function (m) {
-            var rate = memberRate(m);
-            if (rate === null) return;
-            m.transactions.forEach(function (t) {
-              if (t.date.slice(0, 7) === key) add({ type: t.type, amount: convAmt(t.amount, rate) });
+          function addList(list, fallbackCur, memberUid) {
+            list.forEach(function (t) {
+              if (t.date.slice(0, 7) !== key) return;
+              if (memberUid && isExcluded(t.id)) return; // owner excluded this one entry by hand
+              var rate = rateFor(entryCur(t, fallbackCur));
+              if (rate === null) return;
+              var amt = convAmt(t.amount, rate);
+              if (t.type === "income") inc += amt; else exp += amt;
             });
+          }
+          addList(myEntries, state.currency);
+          if (isCombined()) family.forEach(function (m) {
+            if (!countsInTotals(m.uid)) return; // monitor only — left out of compare and trend totals
+            addList(m.transactions, m.currency, m.uid);
           });
           return { income: inc, expenses: exp, net: inc - exp };
         }
@@ -1019,6 +1205,14 @@
           var found = null;
           myRecurring.forEach(function (r) { if (r.id === id) found = r; });
           return found;
+        }
+        // Whether the template behind a repeating entry repeats every 2 weeks
+        // (used for the entry's chip). Unknown templates read as monthly.
+        function templateIsBiweekly(id) {
+          var bw = false;
+          myRecurring.forEach(function (r) { if (r.id === id && r.frequency === "biweekly") bw = true; });
+          if (!bw) familyRecurring.forEach(function (r) { if (r.id === id && r.frequency === "biweekly") bw = true; });
+          return bw;
         }
 
         // ---------- Cloud writes ----------
@@ -1045,18 +1239,23 @@
             ownerUid: me.uid,
             familyId: profile.familyId || null,
             type: t.type, date: t.date, category: t.category, desc: t.desc,
-            amount: t.amount, currency: state.currency,
+            amount: t.amount, currency: validCurrency(t.currency) ? t.currency : state.currency,
             recurringId: t.recurId || null,
+            estimated: !!t.estimated,
             createdAt: t.createdAt || Date.now()
           };
         }
         function addEntry(t) {
           return db.collection("entries").add(entryDocData(t));
         }
-        // Add any missing monthly instances, from each template's start month up to
+        // Add any missing repeating instances, from each template's start month up to
         // this month (or the viewed month, if it's further ahead). Instance docs use
-        // a fixed id per template + month, so two devices adding the same month's
-        // entry write the same document instead of doubling it.
+        // a fixed id per template + month (monthly) or template + date (every
+        // 2 weeks), so two devices adding the same instance write the same
+        // document instead of doubling it. A monthly template's window starts at
+        // its start month; an every-2-weeks template's window starts at its
+        // anchor's month, and within the window its dates come from the
+        // anchor + 14-day phase (see biweeklyDatesInMonth).
         var materializing = false;
         function ensureRecurring() {
           if (!me || !profile || materializing) return;
@@ -1064,6 +1263,30 @@
           var upto = state.month > thisMonth ? state.month : thisMonth;
           var jobs = [];
           myRecurring.forEach(function (tpl) {
+            if (isBiweekly(tpl)) {
+              if (!tpl.anchorDate) return;
+              var bKey = tpl.startMonth || tpl.anchorDate.slice(0, 7), bGuard = 0;
+              while (bKey <= upto && bGuard < 600) {
+                bGuard++;
+                biweeklyDatesInMonth(tpl, bKey).forEach(function (date) {
+                  if ((tpl.exceptionDates || []).indexOf(date) !== -1) return;
+                  var existsB = false;
+                  myEntries.forEach(function (t) {
+                    if (t.recurId === tpl.id && t.date === date) existsB = true;
+                  });
+                  if (!existsB) {
+                    var instB = {
+                      type: tpl.type, date: date, category: tpl.category,
+                      desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, recurId: tpl.id, createdAt: Date.now(),
+                      estimated: !!tpl.variable
+                    };
+                    jobs.push(db.collection("entries").doc("rec_" + tpl.id + "_" + date).set(entryDocData(instB)));
+                  }
+                });
+                bKey = monthShiftKey(bKey, 1);
+              }
+              return;
+            }
             var key = tpl.startMonth, guard = 0;
             while (key <= upto && guard < 600) {
               guard++;
@@ -1076,7 +1299,10 @@
                   var day = Math.min(tpl.day, daysInMonth(key));
                   var inst = {
                     type: tpl.type, date: key + "-" + pad(day), category: tpl.category,
-                    desc: tpl.desc, amount: tpl.amount, recurId: tpl.id, createdAt: Date.now()
+                    desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, recurId: tpl.id, createdAt: Date.now(),
+                    // A varying bill's auto-added entry is only the usual amount —
+                    // it stays flagged "Estimated" until the owner types the real one.
+                    estimated: !!tpl.variable
                   };
                   jobs.push(db.collection("entries").doc("rec_" + tpl.id + "_" + key).set(entryDocData(inst)));
                 }
@@ -1170,7 +1396,8 @@
           EXPENSE_CATS.forEach(function (c) { budgets[c] = 0; });
           return {
             name: name, email: me.email || "", currency: currency, budgets: budgets,
-            customExpenseCats: [], customIncomeCats: [], rates: {},
+            customExpenseCats: [], customIncomeCats: [], rates: {}, memberTotals: {},
+            excludedEntries: [],
             familyId: null, isFamilyOwner: false, lastExportAt: 0
           };
         }
@@ -1208,11 +1435,20 @@
             state.budgets[k] = isNaN(v) || v < 0 ? 0 : v;
           }
           state.rates = profile.rates || {};
+          state.memberTotals = {};
+          if (profile.memberTotals) for (var mk in profile.memberTotals) {
+            if (profile.memberTotals[mk] === false) state.memberTotals[mk] = false;
+          }
+          state.excludedEntries = [];
+          if (Array.isArray(profile.excludedEntries)) profile.excludedEntries.forEach(function (id) {
+            if (typeof id === "string" && id && state.excludedEntries.indexOf(id) === -1) state.excludedEntries.push(id);
+          });
           var le = parseFloat(profile.lastExportAt);
           state.lastExportAt = isNaN(le) || le < 0 ? 0 : le;
           setFmt();
           els.personName.value = state.name;
           els.currencySelect.value = state.currency;
+          if (!editingId) els.entryCurrency.value = state.currency;
           els.whoLine.textContent = "Signed in as " + (state.name || "you") + (me.email ? " (" + me.email + ")" : "");
           els.viewCombined.hidden = !profile.isFamilyOwner;
           if (!profile.isFamilyOwner && viewMode === "combined") viewMode = "personal";
@@ -1231,8 +1467,27 @@
           return {
             id: d.id, ownerUid: t.ownerUid, type: t.type, date: String(t.date || "").slice(0, 10),
             category: String(t.category || "Other"), desc: String(t.desc || ""),
-            amount: parseFloat(t.amount) || 0, recurId: t.recurringId || null,
+            amount: parseFloat(t.amount) || 0, currency: validCurrency(t.currency) ? t.currency : null,
+            recurId: t.recurringId || null,
+            estimated: t.estimated === true,
             createdAt: t.createdAt || 0
+          };
+        }
+        function templateFromDoc(d) {
+          var r = d.data();
+          return {
+            id: d.id, ownerUid: r.ownerUid || null, type: r.type,
+            // Templates written before every-2-weeks existed have no frequency
+            // field — they are monthly, exactly as they always behaved.
+            frequency: r.frequency === "biweekly" ? "biweekly" : "monthly",
+            anchorDate: r.anchorDate ? String(r.anchorDate).slice(0, 10) : null,
+            day: Math.min(Math.max(parseInt(r.day, 10) || 1, 1), 31),
+            category: String(r.category || "Other"), desc: String(r.desc || ""),
+            amount: parseFloat(r.amount) || 0, currency: validCurrency(r.currency) ? r.currency : null,
+            startMonth: String(r.startMonth || "").slice(0, 7),
+            exceptions: Array.isArray(r.exceptions) ? r.exceptions.slice() : [],
+            exceptionDates: Array.isArray(r.exceptionDates) ? r.exceptionDates.slice() : [],
+            variable: r.variable === true, active: r.active !== false
           };
         }
         function startDataListeners() {
@@ -1252,17 +1507,7 @@
             render();
           });
           listen(db.collection("recurring").where("ownerUid", "==", me.uid), function (snap) {
-            myRecurring = [];
-            snap.docs.forEach(function (d) {
-              var r = d.data();
-              if (r.active === false) return;
-              myRecurring.push({
-                id: d.id, type: r.type, day: Math.min(Math.max(parseInt(r.day, 10) || 1, 1), 31),
-                category: String(r.category || "Other"), desc: String(r.desc || ""),
-                amount: parseFloat(r.amount) || 0, startMonth: String(r.startMonth || "").slice(0, 7),
-                exceptions: Array.isArray(r.exceptions) ? r.exceptions.slice() : []
-              });
-            });
+            myRecurring = snap.docs.map(templateFromDoc).filter(function (r) { return r.active; });
             ensureRecurring();
             render();
           });
@@ -1277,7 +1522,7 @@
           familyListenKey = key;
           // Drop the previous family listeners (they are the ones after the first three).
           while (unsubs.length > 3) { var u = unsubs.pop(); try { u(); } catch (e) {} }
-          familyDoc = null; familyMirrors = {}; familyEntries = []; rebuildFamily();
+          familyDoc = null; familyMirrors = {}; familyEntries = []; familyRecurring = []; rebuildFamily();
           if (!fid) { render(); return; }
           listen(db.collection("families").doc(fid), function (snap) {
             if (!snap.exists) { onFamilyGone(); return; }
@@ -1304,12 +1549,18 @@
               rebuildFamily();
               render();
             });
+            // Members' repeating templates too — the rules give the family owner
+            // read access to them, and Combined view's bills list needs them.
+            listen(db.collection("recurring").where("familyId", "==", fid), function (snap) {
+              familyRecurring = snap.docs.map(templateFromDoc).filter(function (r) { return r.active; });
+              render();
+            });
           }
         }
         // When the owner removes a member, the owner's app cannot write that
         // member's profile or entries (the rules forbid it) — so the member's own
         // app tidies up here: it clears the family stamp from its profile, its
-        // entries and its monthly entries, and deletes its family mirror copy.
+        // entries and its repeating entries, and deletes its family mirror copy.
         // The same cleanup runs when the family itself has been deleted.
         function onFamilyGone() {
           if (cleaningFamily || !profile || !profile.familyId || profile.isFamilyOwner) return;
@@ -1322,7 +1573,7 @@
           });
           var jobs = [batch.commit().catch(function () {})];
           jobs.push(db.collection("families").doc(fid).collection("members").doc(me.uid).delete().catch(function () {}));
-          // Monthly templates keep their stamps in their own docs; clear them too.
+          // Repeating templates keep their stamps in their own docs; clear them too.
           jobs.push(db.collection("recurring").where("ownerUid", "==", me.uid).get().then(function (snap) {
             var b2 = db.batch();
             var any = false;
@@ -1344,7 +1595,7 @@
           familyListenKey = "";
           me = user || null;
           profile = null; profileExists = false;
-          myEntries = []; myRecurring = []; familyDoc = null; familyMirrors = {}; familyEntries = []; family = [];
+          myEntries = []; myRecurring = []; familyDoc = null; familyMirrors = {}; familyEntries = []; familyRecurring = []; family = [];
           viewMode = "personal";
           if (!user) { showScreen("auth"); return; }
           persistenceReady.then(function () {
@@ -1418,12 +1669,17 @@
           if (profile) saveProfile({ currency: state.currency });
           render();
         });
+        els.entryCurrency.addEventListener("change", function () {
+          var c = validCurrency(this.value) ? this.value : state.currency;
+          els.amountLabel.textContent = "Amount (" + CURR[c].sym + ")";
+        });
 
         // ---------- Render ----------
         function render() {
           if (!me || !profile) return;
           els.monthName.textContent = monthLabel(state.month);
-          els.amountLabel.textContent = "Amount (" + CURR[state.currency].sym + ")";
+          var formCur = validCurrency(els.entryCurrency.value) ? els.entryCurrency.value : state.currency;
+          els.amountLabel.textContent = "Amount (" + CURR[formCur].sym + ")";
           var combined = isCombined();
           els.viewPersonal.setAttribute("aria-pressed", combined ? "false" : "true");
           els.viewCombined.setAttribute("aria-pressed", combined ? "true" : "false");
@@ -1446,6 +1702,8 @@
           var txs = activeTxs();
           var income = 0, expenses = 0, inCount = 0, outCount = 0;
           txs.forEach(function (t) {
+            if (!t.inTotals) return; // in a currency with no rate yet — shown in the list, kept out of the totals
+            if (!t.counted) return; // a member set to "just monitor", or an entry excluded by hand — kept out of the totals
             if (t.type === "income") { income += t.amount; inCount++; }
             else { expenses += t.amount; outCount++; }
           });
@@ -1477,7 +1735,10 @@
           }
 
           renderFamily();
+          renderMonitorNote();
+          renderMyRates();
           renderAlert(spent, budgets);
+          renderBills();
           renderBudgets(spent, budgets);
           renderBreakdown(spent, expenses);
           renderTransactions(txs);
@@ -1582,6 +1843,7 @@
             return a.id < b.id ? 1 : -1;
           });
           var shown = sorted.filter(function (t) {
+            if (t.excluded && !showExcluded) return false; // owner-excluded entries stay out of the list — and out of search results — until revealed
             if (f !== "all" && t.type !== f) return false;
             if (q && (t.desc + " " + t.category + " " + (t.owner || "")).toLowerCase().indexOf(q) === -1) return false;
             return true;
@@ -1591,20 +1853,42 @@
             ? "No entries match your search or filter."
             : "No entries yet for this month.<br />Add your first income or expense using the form.";
           var combined = isCombined();
+          // The "Show excluded" bar sits above the list in Combined view,
+          // but only while this month actually has excluded entries.
+          var exclCount = combined ? txs.filter(function (t) { return t.excluded; }).length : 0;
+          els.exclBar.hidden = !(combined && exclCount > 0);
+          if (combined && exclCount > 0) {
+            els.showExcludedBtn.setAttribute("aria-pressed", showExcluded ? "true" : "false");
+            els.showExcludedBtn.textContent = (showExcluded ? "Hide excluded (" : "Show excluded (") + exclCount + ")";
+          }
           els.txList.innerHTML = shown.map(function (t) {
             var sign = t.type === "income" ? "+" : "−";
             var ownerHtml = combined ? '<span class="owner-chip">' + esc(t.owner || "") + "</span>" : "";
-            var monthlyHtml = t.recurId ? '<span class="chip monthly">Monthly</span>' : "";
+            var monthlyHtml = t.recurId ? '<span class="chip monthly">' + (templateIsBiweekly(t.recurId) ? "Every 2 weeks" : "Monthly") + "</span>" : "";
+            var estHtml = t.estimated ? '<span class="chip estimated">Estimated</span>' : "";
+            // The amount as entered, in its own currency. When that's not the
+            // viewer's currency, the changed-into value rides underneath —
+            // or a plain note when there's no rate yet and it isn't totalled.
+            var amtHtml;
+            if (t.currency === state.currency) {
+              amtHtml = sign + fmt.format(t.origAmount);
+            } else {
+              amtHtml = sign + fmtFor(t.currency).format(t.origAmount) +
+                (t.inTotals
+                  ? '<span class="conv">≈ ' + sign + fmt.format(t.amount) + " in the totals</span>"
+                  : '<span class="conv">Not in the totals — no exchange rate set</span>');
+            }
             var actions = t.mine === false
-              ? '<div class="actions"><span style="color:var(--muted); font-size:0.88rem;">From ' + esc(t.owner || "a family member") + " — only they can change it, in their own account.</span></div>"
+              ? '<div class="actions"><span style="color:var(--muted); font-size:0.88rem;">From ' + esc(t.owner || "a family member") + " — only they can change it, in their own account.</span>" +
+                '<button type="button" class="' + (t.excluded ? "incl-btn" : "excl-btn") + '" data-id="' + esc(t.id) + '">' + (t.excluded ? "Include" : "Exclude") + "</button></div>"
               : '<div class="actions"><button type="button" class="edit" data-id="' + esc(t.id) + '">Edit</button>' +
                 '<button type="button" class="dup" data-id="' + esc(t.id) + '">Duplicate</button>' +
                 '<button type="button" class="del" data-id="' + esc(t.id) + '">Delete</button></div>';
-            return '<li class="tx" data-id="' + esc(t.id) + '">' +
+            return '<li class="tx' + (t.excluded ? " excluded" : "") + '" data-id="' + esc(t.id) + '">' +
               '<div><div class="desc">' + esc(t.desc || t.category) + '</div>' +
               '<div class="meta"><span>' + prettyDate(t.date) + '</span><span class="cat">' + esc(t.category) + "</span>" +
-              "<span>" + (t.type === "income" ? "Income" : "Expense") + "</span>" + monthlyHtml + ownerHtml + "</div></div>" +
-              '<div class="amt ' + (t.type === "income" ? "in" : "out") + '">' + sign + fmt.format(t.amount) + "</div>" +
+              "<span>" + (t.type === "income" ? "Income" : "Expense") + "</span>" + monthlyHtml + estHtml + ownerHtml + "</div></div>" +
+              '<div class="amt ' + (t.type === "income" ? "in" : "out") + '">' + amtHtml + "</div>" +
               actions + "</li>";
           }).join("");
 
@@ -1614,9 +1898,17 @@
           for (var k = 0; k < dupBtns.length; k++) dupBtns[k].addEventListener("click", function () { duplicateTx(this.getAttribute("data-id")); });
           var delBtns = els.txList.querySelectorAll(".del");
           for (var j = 0; j < delBtns.length; j++) delBtns[j].addEventListener("click", function () { deleteTx(this.getAttribute("data-id")); });
+          var exclBtns = els.txList.querySelectorAll(".excl-btn");
+          for (var e1 = 0; e1 < exclBtns.length; e1++) exclBtns[e1].addEventListener("click", function () { setEntryExcluded(this.getAttribute("data-id"), true); });
+          var inclBtns = els.txList.querySelectorAll(".incl-btn");
+          for (var e2 = 0; e2 < inclBtns.length; e2++) inclBtns[e2].addEventListener("click", function () { setEntryExcluded(this.getAttribute("data-id"), false); });
         }
         els.txSearch.addEventListener("input", render);
         els.txFilter.addEventListener("change", render);
+        els.showExcludedBtn.addEventListener("click", function () {
+          showExcluded = !showExcluded;
+          render();
+        });
 
         // ---------- Compare with last month + 6-month trend ----------
         function setCompare(elVal, elSub, cur, last, upIsGood) {
@@ -1661,16 +1953,135 @@
           }).join("");
         }
 
+        // ---------- Bills due ----------
+        // One row per monthly template for the viewed month — and, for an
+        // every-2-weeks EXPENSE template, one row per occurrence in the month.
+        // Every-2-weeks income (salary) never gets a row: it just lands as
+        // entries. Each row shows what's due, when, and whether the amount is
+        // settled. A varying bill whose auto-added entry still carries the
+        // estimate flag reads "Amount to confirm".
+        function billRow(tpl, day, dateStr, inst, future) {
+          var p = dateParts(dateStr);
+          var d = new Date(p.y, p.m - 1, p.d);
+          var status;
+          if (future) status = "Coming on " + day;
+          else if (inst && tpl.variable && inst.estimated) status = "Amount to confirm";
+          else if (inst) status = "Set";
+          else status = "Coming on " + day;
+          return {
+            tpl: tpl, day: day, status: status,
+            dueText: "Due " + d.toLocaleDateString("en-CA", { month: "short", day: "numeric" }),
+            amount: inst ? inst.amount : tpl.amount,
+            est: !!tpl.variable && (!inst || !!inst.estimated)
+          };
+        }
+        function billRowsFor(templates, entries) {
+          var key = state.month;
+          var future = key > monthKey(today);
+          var rows = [];
+          templates.forEach(function (tpl) {
+            if (tpl.startMonth && key < tpl.startMonth) return; // not started yet in the viewed month
+            if (isBiweekly(tpl)) {
+              if (tpl.type !== "expense") return; // biweekly income isn't a bill
+              biweeklyDatesInMonth(tpl, key).forEach(function (date) {
+                var instB = null;
+                entries.forEach(function (t) { if (t.recurId === tpl.id && t.date === date) instB = t; });
+                rows.push(billRow(tpl, Number(date.slice(8, 10)), date, instB, future));
+              });
+              return;
+            }
+            var inst = null;
+            entries.forEach(function (t) { if (t.recurId === tpl.id && t.date.slice(0, 7) === key) inst = t; });
+            var day = Math.min(tpl.day, daysInMonth(key));
+            rows.push(billRow(tpl, day, key + "-" + pad(day), inst, future));
+          });
+          rows.sort(function (a, b) { return a.day - b.day; });
+          return rows;
+        }
+        function billRowHtml(r, fmtAmt) {
+          var sign = r.tpl.type === "income" ? "+" : "−";
+          return '<div class="bill-row"><div>' +
+            '<span class="rname">' + esc(r.tpl.desc || r.tpl.category) + "</span>" +
+            '<div class="rmeta"><span>' + esc(r.tpl.category) + "</span><span>" + esc(r.dueText) + "</span></div></div>" +
+            '<div><div class="ramt ' + (r.tpl.type === "income" ? "in" : "out") + '">' + sign + fmtAmt(r) + (r.est ? " est." : "") + "</div>" +
+            '<div class="bill-status' + (r.status === "Amount to confirm" ? " confirm" : "") + '">' + esc(r.status) + "</div></div></div>";
+        }
+        // A bill's amount, shown in the bill's own currency. When that's not
+        // the viewer's currency and a rate is set, the changed-into value
+        // rides along underneath — display only; the bills card has no totals.
+        function billAmtHtml(r, fallbackCur) {
+          var cur = entryCur(r.tpl, fallbackCur);
+          var s = fmtFor(cur).format(r.amount);
+          if (cur !== state.currency) {
+            var rate = rateFor(cur);
+            if (rate !== null) s += '<span class="conv">≈ ' + fmt.format(convAmt(r.amount, rate)) + "</span>";
+          }
+          return s;
+        }
+        function renderBills() {
+          els.billsTitle.textContent = "Bills due in " + monthLabel(state.month);
+          var combined = isCombined();
+          els.billsHint.textContent = combined
+            ? "Everyone's repeating bills for the month you're looking at, grouped by person."
+            : "Your repeating bills for the month you're looking at.";
+          var html = "";
+          var any = false;
+          if (!combined) {
+            var rows = billRowsFor(myRecurring, myEntries);
+            if (rows.length) {
+              any = true;
+              html = rows.map(function (r) { return billRowHtml(r, function (row) { return billAmtHtml(row, state.currency); }); }).join("");
+            }
+          } else {
+            var groups = [{
+              name: myName(), templates: myRecurring, entries: myEntries,
+              fmtAmt: function (r) { return billAmtHtml(r, state.currency); }
+            }];
+            family.forEach(function (m) {
+              var cur = validCurrency(m.currency) ? m.currency : "CAD";
+              groups.push({
+                name: m.name,
+                fmtAmt: function (r) { return billAmtHtml(r, cur); },
+                templates: familyRecurring.filter(function (t) { return t.ownerUid === m.uid; }),
+                entries: familyEntries.filter(function (t) { return t.ownerUid === m.uid; })
+              });
+            });
+            groups.forEach(function (g) {
+              var grows = billRowsFor(g.templates, g.entries);
+              if (!grows.length) return;
+              any = true;
+              html += '<h3 class="bill-person">' + esc(g.name) + "</h3>" +
+                grows.map(function (r) { return billRowHtml(r, g.fmtAmt); }).join("");
+            });
+          }
+          els.billsList.innerHTML = any
+            ? html
+            : '<p class="empty">No repeating bills set up yet — tick "Repeats" when adding a bill.</p>';
+        }
+
         // ---------- Recurring entries ----------
         function renderRecurring() {
           els.recurringCard.hidden = !myRecurring.length;
           if (!myRecurring.length) { els.recurringList.innerHTML = ""; return; }
           els.recurringList.innerHTML = myRecurring.map(function (tpl) {
             var sign = tpl.type === "income" ? "+" : "−";
+            var meta;
+            if (isBiweekly(tpl)) {
+              var nx = nextBiweeklyDate(tpl);
+              meta = esc(tpl.category) + " · every 2 weeks" + (nx ? " · next " + esc(prettyDate(nx)) : "") + (tpl.variable ? " · amount varies each time" : "");
+            } else {
+              meta = esc(tpl.category) + " · day " + tpl.day + " of the month · since " + esc(monthLabel(tpl.startMonth)) + (tpl.variable ? " · amount varies each time" : "");
+            }
+            var tplCur = entryCur(tpl, state.currency);
+            var amtHtml = fmtFor(tplCur).format(tpl.amount);
+            if (tplCur !== state.currency) {
+              var trate = rateFor(tplCur);
+              if (trate !== null) amtHtml += '<span class="conv">≈ ' + fmt.format(convAmt(tpl.amount, trate)) + "</span>";
+            }
             return '<div class="recur-row"><div>' +
               '<span class="rname">' + esc(tpl.desc || tpl.category) + '</span>' +
-              '<div class="rmeta">' + esc(tpl.category) + " · day " + tpl.day + " of the month · since " + esc(monthLabel(tpl.startMonth)) + "</div></div>" +
-              '<div><div class="ramt ' + (tpl.type === "income" ? "in" : "out") + '">' + sign + fmt.format(tpl.amount) + "</div>" +
+              '<div class="rmeta">' + meta + "</div></div>" +
+              '<div><div class="ramt ' + (tpl.type === "income" ? "in" : "out") + '">' + sign + amtHtml + "</div>" +
               '<button type="button" class="stop-recur" data-id="' + esc(tpl.id) + '">Stop</button></div></div>';
           }).join("");
           var btns = els.recurringList.querySelectorAll(".stop-recur");
@@ -1809,15 +2220,32 @@
           var btns = els.ownerMemberList.querySelectorAll(".remove-member");
           for (var i = 0; i < btns.length; i++) btns[i].addEventListener("click", function () { removeMember(this.getAttribute("data-uid")); });
         }
-        // One person's own totals for the selected month, in their own currency.
-        function ownMonthStats(transactions) {
-          var inc = 0, exp = 0, n = 0;
+        // One person's totals for the selected month, changed into `targetCur`.
+        // Every entry converts on its OWN currency, through the viewer's saved
+        // rates (into the viewer's currency, then out into the target at the
+        // target's rate). Entries already in the target need no rate. Entries
+        // that can't be converted are left out, and their currencies are
+        // reported in `excluded` so the screen can say what's missing.
+        function statsConverted(transactions, targetCur, fallbackCur) {
+          var inc = 0, exp = 0, n = 0, excluded = [];
           transactions.forEach(function (t) {
             if (t.date.slice(0, 7) !== state.month) return;
+            var cur = entryCur(t, fallbackCur);
+            var factor;
+            if (cur === targetCur) factor = 1;
+            else {
+              var rate = rateFor(cur), targetRate = rateFor(targetCur);
+              if (rate === null || targetRate === null) {
+                if (excluded.indexOf(cur) === -1) excluded.push(cur);
+                return;
+              }
+              factor = rate / targetRate;
+            }
+            var amt = Math.round(t.amount * factor * 100) / 100;
             n++;
-            if (t.type === "income") inc += t.amount; else exp += t.amount;
+            if (t.type === "income") inc += amt; else exp += amt;
           });
-          return { inc: inc, exp: exp, n: n };
+          return { inc: inc, exp: exp, n: n, excluded: excluded };
         }
         function memberNumsHtml(s, format) {
           var net = s.inc - s.exp;
@@ -1826,60 +2254,80 @@
             "<span>Left over <b>" + format(net) + "</b></span>" +
             "<span>" + s.n + (s.n === 1 ? " entry" : " entries") + " this month</span></div>";
         }
+        // The owner's per-member totals choice, saved on his own profile.
+        // Counted members are simply absent from the map; switching someone
+        // to "just monitor" stores false against their uid.
+        function setMemberCounted(uid, counted) {
+          if (counted) delete state.memberTotals[uid];
+          else state.memberTotals[uid] = false;
+          profile.memberTotals = state.memberTotals;
+          saveProfile({ memberTotals: state.memberTotals });
+          render();
+        }
+        // One line under the summary cards naming anyone whose money is
+        // being monitored but not counted, so the totals never look wrong.
+        function renderMonitorNote() {
+          var names = [];
+          if (isCombined()) family.forEach(function (m) { if (!countsInTotals(m.uid)) names.push(m.name); });
+          els.monitorNote.hidden = !names.length;
+          els.monitorNote.textContent = names.length
+            ? "Not counted in these totals: " + names.join(", ") + " (monitoring only)."
+            : "";
+        }
         function renderMembers() {
           els.combinedEmpty.style.display = family.length ? "none" : "block";
           var rows = [];
-          var mine = ownMonthStats(myEntries);
+          var mine = statsConverted(myEntries, state.currency, state.currency);
           rows.push('<div class="member-row"><div>' +
             '<span class="mname">' + esc(myName()) + '</span><span class="mtag">You</span>' +
             memberNumsHtml(mine, function (v) { return fmt.format(v); }) + "</div><div></div></div>");
           family.forEach(function (m) {
             var cur = validCurrency(m.currency) ? m.currency : "CAD";
-            var s = ownMonthStats(m.transactions);
+            var counted = countsInTotals(m.uid);
+            var own = statsConverted(m.transactions, cur, cur);
             var mf = fmtFor(cur);
             var html = '<div class="member-row"><div>' +
               '<span class="mname">' + esc(m.name) + '</span><span class="mtag">Family</span>' +
-              memberNumsHtml(s, function (v) { return mf.format(v); });
+              memberNumsHtml(own, function (v) { return mf.format(v); });
+            var excl = own.excluded.slice();
             if (cur !== state.currency) {
-              var rate = memberRate(m);
-              if (rate === null) {
-                html += '<div class="mnums"><span>Not in the family totals yet — set the exchange rate above to include ' + esc(m.name) + ".</span></div>";
-              } else {
-                var conv = { inc: convAmt(s.inc, rate), exp: convAmt(s.exp, rate), n: s.n };
-                html += memberNumsHtml(conv, function (v) { return fmt.format(v); }).replace('<div class="mnums">', '<div class="mnums"><span><strong>In your currency:</strong></span>');
-              }
+              var conv = statsConverted(m.transactions, state.currency, cur);
+              conv.excluded.forEach(function (c) { if (excl.indexOf(c) === -1) excl.push(c); });
+              html += memberNumsHtml(conv, function (v) { return fmt.format(v); }).replace('<div class="mnums">', '<div class="mnums"><span><strong>In your currency:</strong></span>');
             }
-            html += "</div><div></div></div>";
+            if (!counted) {
+              // Monitor-only explains itself — no exchange-rate notes for them.
+              html += '<div class="mnums"><span>Monitoring only — not counted in the family totals.</span></div>';
+            } else if (excl.length) {
+              html += '<div class="mnums"><span>' + esc(m.name) + "'s entries in " + esc(excl.join(", ")) +
+                " aren't in these totals yet — set the exchange rate" + (excl.length > 1 ? "s" : "") + " above to include them.</span></div>";
+            }
+            html += '</div><div><button type="button" class="member-toggle" data-uid="' + esc(m.uid) + '" aria-pressed="' + (counted ? "true" : "false") + '">' +
+              (counted ? "Count in my totals" : "Just monitor") + "</button></div></div>";
             rows.push(html);
           });
           els.memberList.innerHTML = rows.join("");
+          var toggles = els.memberList.querySelectorAll(".member-toggle");
+          for (var ti = 0; ti < toggles.length; ti++) {
+            toggles[ti].addEventListener("click", function () {
+              setMemberCounted(this.getAttribute("data-uid"), this.getAttribute("aria-pressed") !== "true");
+            });
+          }
         }
-        // The exchange-rate fields: one per family currency that differs from the
-        // viewer's, plus a plain note for every member who can't be totalled yet.
-        function renderRates() {
-          var foreign = [];
-          family.forEach(function (m) {
-            var cur = validCurrency(m.currency) ? m.currency : "CAD";
-            if (cur !== state.currency && foreign.indexOf(cur) === -1) foreign.push(cur);
-          });
-          els.ratesArea.hidden = !foreign.length;
-          if (!foreign.length) { els.rateFields.innerHTML = ""; els.rateNotes.innerHTML = ""; return; }
-          els.rateFields.innerHTML = foreign.map(function (cur) {
+        // The exchange-rate fields, shared by the family panel's rates area
+        // and the viewer's own rates block in the budgets card. `prefix` keeps
+        // the input ids unique when both areas exist on the page.
+        function rateFieldsHtml(foreign, prefix) {
+          return foreign.map(function (cur) {
             var v = state.rates[cur];
-            return '<div class="rate-row"><label for="rate-' + cur + '">1 ' + esc(CURR[cur].sym) + " (" + cur + ") =</label>" +
-              '<input type="number" class="rate-input" id="rate-' + cur + '" data-cur="' + cur + '" min="0" step="any" inputmode="decimal" ' +
+            return '<div class="rate-row"><label for="' + prefix + cur + '">1 ' + esc(CURR[cur].sym) + " (" + cur + ") =</label>" +
+              '<input type="number" class="rate-input" id="' + prefix + cur + '" data-cur="' + cur + '" min="0" step="any" inputmode="decimal" ' +
               'placeholder="e.g. 0.27" value="' + (v ? v : "") + '" aria-label="Exchange rate: 1 ' + cur + ' in ' + state.currency + '" />' +
               '<span class="rate-cur">' + state.currency + "</span></div>";
           }).join("");
-          var notes = [];
-          family.forEach(function (m) {
-            var cur = validCurrency(m.currency) ? m.currency : "CAD";
-            if (cur !== state.currency && memberRate(m) === null) {
-              notes.push('<p class="rate-note">' + esc(m.name) + "'s entries are in " + cur + " — set the exchange rate above to include them in the totals.</p>");
-            }
-          });
-          els.rateNotes.innerHTML = notes.join("");
-          var inputs = els.rateFields.querySelectorAll(".rate-input");
+        }
+        function bindRateInputs(container) {
+          var inputs = container.querySelectorAll(".rate-input");
           for (var i = 0; i < inputs.length; i++) {
             inputs[i].addEventListener("change", function () {
               var cur = this.getAttribute("data-cur");
@@ -1891,6 +2339,76 @@
               render();
             });
           }
+        }
+        // The viewer's own exchange rates, shown with the budgets whenever any
+        // of their own entries or repeating entries use another currency (or a
+        // rate is already saved, so it can be changed or cleared). In Combined
+        // view the family panel's rates area covers the same ground, so this
+        // block stays hidden there.
+        function renderMyRates() {
+          var foreign = [];
+          function noteCur(c) { if (c !== state.currency && foreign.indexOf(c) === -1) foreign.push(c); }
+          myEntries.forEach(function (t) { noteCur(entryCur(t, state.currency)); });
+          myRecurring.forEach(function (r) { noteCur(entryCur(r, state.currency)); });
+          Object.keys(state.rates || {}).forEach(noteCur);
+          var show = !isCombined() && foreign.length > 0;
+          els.myRatesArea.hidden = !show;
+          if (!show) { els.myRateFields.innerHTML = ""; els.myRateNotes.innerHTML = ""; return; }
+          els.myRateFields.innerHTML = rateFieldsHtml(foreign, "myrate-");
+          var notes = [];
+          foreign.forEach(function (c) {
+            if (rateFor(c) !== null) return;
+            var used = myEntries.some(function (t) { return entryCur(t, state.currency) === c; }) ||
+              myRecurring.some(function (r) { return entryCur(r, state.currency) === c; });
+            if (used) notes.push('<p class="rate-note">Your entries in ' + c + " aren't in your totals yet — set the exchange rate above to include them.</p>");
+          });
+          els.myRateNotes.innerHTML = notes.join("");
+          bindRateInputs(els.myRateFields);
+        }
+        // The exchange-rate fields for Combined view: one per foreign currency
+        // in play — family members' own currencies, any currency a member's
+        // entries or bills use, and the viewer's own foreign currencies — plus
+        // a plain note for every pot of money that can't be totalled yet.
+        function renderRates() {
+          var foreign = [];
+          function noteCur(c) { if (c !== state.currency && foreign.indexOf(c) === -1) foreign.push(c); }
+          family.forEach(function (m) {
+            var mcur = validCurrency(m.currency) ? m.currency : "CAD";
+            noteCur(mcur);
+            m.transactions.forEach(function (t) { noteCur(entryCur(t, mcur)); });
+          });
+          familyRecurring.forEach(function (r) {
+            var owner = null;
+            family.forEach(function (m) { if (m.uid === r.ownerUid) owner = m; });
+            noteCur(entryCur(r, owner ? owner.currency : null));
+          });
+          myEntries.forEach(function (t) { noteCur(entryCur(t, state.currency)); });
+          myRecurring.forEach(function (r) { noteCur(entryCur(r, state.currency)); });
+          els.ratesArea.hidden = !foreign.length;
+          if (!foreign.length) { els.rateFields.innerHTML = ""; els.rateNotes.innerHTML = ""; return; }
+          els.rateFields.innerHTML = rateFieldsHtml(foreign, "rate-");
+          var notes = [];
+          var myMissing = [];
+          myEntries.forEach(function (t) {
+            var c = entryCur(t, state.currency);
+            if (c !== state.currency && rateFor(c) === null && myMissing.indexOf(c) === -1) myMissing.push(c);
+          });
+          myMissing.forEach(function (c) {
+            notes.push('<p class="rate-note">Your entries in ' + c + " aren't in the totals yet — set the exchange rate above to include them.</p>");
+          });
+          family.forEach(function (m) {
+            if (!countsInTotals(m.uid)) return; // monitor only — that setting, not a missing rate, is why they're out of the totals
+            var missing = [];
+            m.transactions.forEach(function (t) {
+              var c = entryCur(t, m.currency);
+              if (c !== state.currency && rateFor(c) === null && missing.indexOf(c) === -1) missing.push(c);
+            });
+            missing.forEach(function (c) {
+              notes.push('<p class="rate-note">' + esc(m.name) + "'s entries in " + c + " aren't in the family totals yet — set the exchange rate above to include them.</p>");
+            });
+          });
+          els.rateNotes.innerHTML = notes.join("");
+          bindRateInputs(els.rateFields);
         }
         function setView(mode) {
           if (mode === "combined" && !(profile && profile.isFamilyOwner)) mode = "personal";
@@ -1907,7 +2425,7 @@
           return out;
         }
         // Stamp (or clear) the family id on everything I own — my entries and my
-        // monthly templates — in batches. Used when joining, leaving, or when the
+        // repeating templates — in batches. Used when joining, leaving, or when the
         // family is created or deleted.
         function stampFamily(fid) {
           var writes = [];
@@ -2009,6 +2527,24 @@
             // and tidies up on its own (see onFamilyGone).
             return db.collection("families").doc(fid).collection("members").doc(uid).delete().catch(function () {});
           }).then(function () {
+            // Forget any "just monitor" choice for them too, so if they ever
+            // rejoin they start out counted, like any new member.
+            if (state.memberTotals[uid] === false) {
+              delete state.memberTotals[uid];
+              profile.memberTotals = state.memberTotals;
+              saveProfile({ memberTotals: state.memberTotals });
+            }
+            // Same tidy-up for hand-excluded entries: drop their entry ids
+            // from the exclusion list, so a rejoin starts with nothing hidden.
+            var goneIds = {};
+            family.forEach(function (m) {
+              if (m.uid === uid) m.transactions.forEach(function (t) { goneIds[t.id] = true; });
+            });
+            if (state.excludedEntries.some(function (id) { return goneIds[id]; })) {
+              state.excludedEntries = state.excludedEntries.filter(function (id) { return !goneIds[id]; });
+              profile.excludedEntries = state.excludedEntries;
+              saveProfile({ excludedEntries: state.excludedEntries });
+            }
             showFamilyMsg("Removed. Your combined view updates right away.", false);
             render();
           }).catch(function () { showFamilyMsg("We couldn't remove them just now — try again.", true); });
@@ -2066,14 +2602,55 @@
         // ---------- Add / edit / delete entries ----------
         function showError(msg) { showFormError(els.formError, msg); }
         function makeTemplateDoc(data) {
-          return db.collection("recurring").add({
+          var biweekly = data.frequency === "biweekly";
+          var anchor = biweekly ? (data.anchorDate || data.date) : null;
+          var doc = {
             ownerUid: me.uid, familyId: profile.familyId || null,
             type: data.type, day: Number(data.date.slice(8, 10)),
+            frequency: biweekly ? "biweekly" : "monthly",
             category: data.category, desc: data.desc, amount: data.amount,
-            currency: state.currency, active: true,
-            startMonth: data.date.slice(0, 7), exceptions: []
-          });
+            variable: !!data.variable,
+            currency: validCurrency(data.currency) ? data.currency : state.currency, active: true,
+            startMonth: (anchor || data.date).slice(0, 7), exceptions: [], exceptionDates: []
+          };
+          if (anchor) doc.anchorDate = anchor;
+          return db.collection("recurring").add(doc);
         }
+        // Editing or deleting one occurrence of a repeating entry changes that
+        // occurrence only: the template is told to skip it — by month for a
+        // monthly template, by exact date for an every-2-weeks one — so the
+        // edited entry can stand alone and a deleted one stays deleted.
+        function detachOccurrence(entry) {
+          var tpl = findTemplate(entry.recurId);
+          var patch = isBiweekly(tpl)
+            ? { exceptionDates: firebase.firestore.FieldValue.arrayUnion(entry.date) }
+            : { exceptions: firebase.firestore.FieldValue.arrayUnion(entry.date.slice(0, 7)) };
+          return db.collection("recurring").doc(entry.recurId).update(patch).catch(function () {});
+        }
+        function resetRepeatUI() {
+          els.entryRecurring.checked = false;
+          els.entryVariable.checked = false;
+          els.variableField.hidden = true;
+          els.frequencyField.hidden = true;
+          els.anchorField.hidden = true;
+          els.freqMonthly.checked = true;
+          els.freqBiweekly.checked = false;
+          els.entryAnchor.value = "";
+        }
+        function syncFrequencyUI() {
+          var bw = els.freqBiweekly.checked;
+          els.anchorField.hidden = !bw;
+          if (bw && !els.entryAnchor.value) els.entryAnchor.value = els.entryDate.value;
+        }
+        els.entryRecurring.addEventListener("change", function () {
+          var on = els.entryRecurring.checked;
+          els.frequencyField.hidden = !on;
+          els.variableField.hidden = !on;
+          if (on) syncFrequencyUI();
+          else resetRepeatUI();
+        });
+        els.freqMonthly.addEventListener("change", syncFrequencyUI);
+        els.freqBiweekly.addEventListener("change", syncFrequencyUI);
         els.form.addEventListener("submit", function (ev) {
           ev.preventDefault();
           var amount = parseFloat(els.entryAmount.value);
@@ -2083,13 +2660,18 @@
           showError("");
           var data = {
             type: formType, date: date, category: els.entryCategory.value,
-            desc: els.entryDesc.value.trim(), amount: Math.round(amount * 100) / 100
+            desc: els.entryDesc.value.trim(), amount: Math.round(amount * 100) / 100,
+            currency: validCurrency(els.entryCurrency.value) ? els.entryCurrency.value : state.currency
           };
-          var wantsMonthly = els.entryRecurring.checked;
+          var wantsRepeat = els.entryRecurring.checked;
+          data.variable = wantsRepeat && els.entryVariable.checked;
+          data.frequency = wantsRepeat && els.freqBiweekly.checked ? "biweekly" : "monthly";
+          data.anchorDate = data.frequency === "biweekly" ? (els.entryAnchor.value || date) : null;
           var finish = function () {
             els.entryDesc.value = "";
             els.entryAmount.value = "";
-            els.entryRecurring.checked = false;
+            els.entryCurrency.value = state.currency;
+            resetRepeatUI();
             els.recurNote.className = "recur-note";
             state.month = data.date.slice(0, 7);
             els.monthPicker.value = state.month;
@@ -2099,43 +2681,42 @@
             var tx = findEntry(editingId);
             var jobs = [];
             if (tx && tx.recurId) {
-              // Editing one month of a monthly entry changes this month only:
-              // the entry becomes a one-off and the monthly template skips this month.
-              jobs.push(db.collection("recurring").doc(tx.recurId).update({
-                exceptions: firebase.firestore.FieldValue.arrayUnion(tx.date.slice(0, 7))
-              }).catch(function () {}));
+              // Editing one occurrence of a repeating entry changes this
+              // occurrence only: the entry becomes a one-off (below) and the
+              // template skips this occurrence from now on.
+              jobs.push(detachOccurrence(tx));
             }
             var entryId = editingId;
             stopEdit();
             var chain = Promise.all(jobs);
-            if (wantsMonthly) {
+            if (wantsRepeat) {
               chain = chain.then(function () { return makeTemplateDoc(data); })
                 .then(function (ref) {
                   return db.collection("entries").doc(entryId).update({
                     type: data.type, date: data.date, category: data.category,
-                    desc: data.desc, amount: data.amount, recurringId: ref.id
+                    desc: data.desc, amount: data.amount, currency: data.currency, recurringId: ref.id, estimated: false
                   });
                 });
             } else {
               chain = chain.then(function () {
                 return db.collection("entries").doc(entryId).update({
                   type: data.type, date: data.date, category: data.category,
-                  desc: data.desc, amount: data.amount, recurringId: null
+                  desc: data.desc, amount: data.amount, currency: data.currency, recurringId: null, estimated: false
                 });
               });
             }
             chain.then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
-          } else if (wantsMonthly) {
+          } else if (wantsRepeat) {
             makeTemplateDoc(data).then(function (ref) {
               return addEntry({
                 type: data.type, date: data.date, category: data.category,
-                desc: data.desc, amount: data.amount, recurId: ref.id, createdAt: Date.now()
+                desc: data.desc, amount: data.amount, currency: data.currency, recurId: ref.id, createdAt: Date.now()
               });
             }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
           } else {
             addEntry({
               type: data.type, date: data.date, category: data.category,
-              desc: data.desc, amount: data.amount, recurId: null, createdAt: Date.now()
+              desc: data.desc, amount: data.amount, currency: data.currency, recurId: null, createdAt: Date.now()
             }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
           }
         });
@@ -2147,8 +2728,10 @@
           els.entryCategory.value = t.category;
           els.entryDate.value = t.date;
           els.entryAmount.value = t.amount;
+          els.entryCurrency.value = validCurrency(t.currency) ? t.currency : state.currency;
+          els.amountLabel.textContent = "Amount (" + CURR[els.entryCurrency.value].sym + ")";
           els.entryDesc.value = t.desc;
-          els.entryRecurring.checked = false;
+          resetRepeatUI();
           els.recurNote.className = "recur-note" + (t.recurId ? " show" : "");
           els.submitBtn.textContent = "Save changes";
           els.cancelEdit.className = "btn btn-ghost btn-cancel show";
@@ -2161,9 +2744,10 @@
         }
         function stopEdit() {
           editingId = null;
+          els.entryCurrency.value = state.currency;
           els.submitBtn.textContent = formType === "income" ? "Add income" : "Add expense";
           els.cancelEdit.className = "btn btn-ghost btn-cancel";
-          els.entryRecurring.checked = false;
+          resetRepeatUI();
           els.recurNote.className = "recur-note";
         }
         els.cancelEdit.addEventListener("click", function () {
@@ -2174,11 +2758,9 @@
           var removed = findEntry(id);
           var jobs = [];
           if (removed && removed.recurId) {
-            // Deleting one month of a monthly entry removes that month only —
-            // the monthly entry carries on for the other months.
-            jobs.push(db.collection("recurring").doc(removed.recurId).update({
-              exceptions: firebase.firestore.FieldValue.arrayUnion(removed.date.slice(0, 7))
-            }).catch(function () {}));
+            // Deleting one occurrence of a repeating entry removes that
+            // occurrence only — the series carries on for the other dates.
+            jobs.push(detachOccurrence(removed));
           }
           jobs.push(db.collection("entries").doc(id).delete());
           if (editingId === id) stopEdit();
@@ -2189,7 +2771,7 @@
           if (!src) return;
           addEntry({
             type: src.type, date: todayStr(), category: src.category,
-            desc: src.desc, amount: src.amount, recurId: null, createdAt: Date.now()
+            desc: src.desc, amount: src.amount, currency: src.currency, recurId: null, createdAt: Date.now()
           }).then(function () {
             state.month = monthKey(today);
             els.monthPicker.value = state.month;
@@ -2225,13 +2807,21 @@
           var payload = {
             name: state.name, budgets: state.budgets,
             transactions: myEntries.map(function (t) {
-              return { type: t.type, date: t.date, category: t.category, desc: t.desc, amount: t.amount };
+              return { type: t.type, date: t.date, category: t.category, desc: t.desc, amount: t.amount, currency: entryCur(t, state.currency) };
             }),
             customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats,
             recurring: myRecurring.map(function (r) {
               var ex = {};
               (r.exceptions || []).forEach(function (m) { ex[m] = true; });
-              return { type: r.type, day: r.day, category: r.category, desc: r.desc, amount: r.amount, startMonth: r.startMonth, exceptions: ex };
+              var out = {
+                type: r.type, day: r.day, category: r.category, desc: r.desc, amount: r.amount,
+                currency: entryCur(r, state.currency),
+                variable: !!r.variable, startMonth: r.startMonth, exceptions: ex,
+                frequency: r.frequency === "biweekly" ? "biweekly" : "monthly",
+                exceptionDates: (r.exceptionDates || []).slice()
+              };
+              if (r.anchorDate) out.anchorDate = r.anchorDate;
+              return out;
             }),
             currency: state.currency
           };
@@ -2242,7 +2832,7 @@
         $("csvBtn").addEventListener("click", function () {
           var lines = ["Date,Type,Category,Description,Amount,Currency"];
           myEntries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (t) {
-            lines.push([t.date, t.type, csvCell(t.category), csvCell(t.desc), t.amount.toFixed(2), state.currency].join(","));
+            lines.push([t.date, t.type, csvCell(t.category), csvCell(t.desc), t.amount.toFixed(2), entryCur(t, state.currency)].join(","));
           });
           download(fileBase() + ".csv", lines.join("\n"), "text/csv");
           stampExport();
@@ -2279,6 +2869,7 @@
             try {
               var text = String(reader.result || "");
               var newEntries = [];
+              var newTemplates = [];
               var baseTime = Date.now();
               if (text.trim().charAt(0) === "{") {
                 var data = JSON.parse(text);
@@ -2313,9 +2904,56 @@
                       newEntries.push({
                         type: t.type, date: String(t.date).slice(0, 10),
                         category: String(t.category || "Other"), desc: String(t.desc || ""),
-                        amount: amt, recurId: null, createdAt: baseTime + idx
+                        amount: amt, currency: validCurrency(t.currency) ? t.currency : null,
+                        recurId: null, createdAt: baseTime + idx
                       });
                     }
+                  });
+                }
+                // Repeating entries ride along in the backup too (older backups
+                // may not have them, and may store exceptions as a {month: true}
+                // map — both shapes are read). Their past occurrences were
+                // imported above as one-off entries, so each restored template
+                // is told to skip everything up to the end of this month: it
+                // takes over from next month and never adds a second copy of
+                // an entry that's already here.
+                if (Array.isArray(data.recurring)) {
+                  var uptoKey = monthKey(today);
+                  data.recurring.forEach(function (r) {
+                    var amt = parseFloat(r.amount);
+                    if (isNaN(amt) || amt <= 0 || (r.type !== "income" && r.type !== "expense")) return;
+                    var bw = r.frequency === "biweekly";
+                    var anchor = bw ? String(r.anchorDate || "").slice(0, 10) : "";
+                    if (bw && !/^\d{4}-\d{2}-\d{2}$/.test(anchor)) return;
+                    var startMonth = String(r.startMonth || "").slice(0, 7) || (bw ? anchor.slice(0, 7) : uptoKey);
+                    var exMonths = {};
+                    if (Array.isArray(r.exceptions)) r.exceptions.forEach(function (m) { exMonths[String(m).slice(0, 7)] = true; });
+                    else if (r.exceptions && typeof r.exceptions === "object") Object.keys(r.exceptions).forEach(function (m) { exMonths[m] = true; });
+                    var exDates = [];
+                    var rawDates = Array.isArray(r.exceptionDates) ? r.exceptionDates
+                      : (r.exceptionDates && typeof r.exceptionDates === "object" ? Object.keys(r.exceptionDates) : []);
+                    rawDates.forEach(function (d) { d = String(d).slice(0, 10); if (exDates.indexOf(d) === -1) exDates.push(d); });
+                    if (!bw) {
+                      var mk = startMonth, g = 0;
+                      while (mk <= uptoKey && g < 600) { exMonths[mk] = true; mk = monthShiftKey(mk, 1); g++; }
+                    } else {
+                      var mk2 = startMonth, g2 = 0, probe = { anchorDate: anchor };
+                      while (mk2 <= uptoKey && g2 < 600) {
+                        biweeklyDatesInMonth(probe, mk2).forEach(function (d) { if (exDates.indexOf(d) === -1) exDates.push(d); });
+                        mk2 = monthShiftKey(mk2, 1); g2++;
+                      }
+                    }
+                    var doc = {
+                      type: r.type, frequency: bw ? "biweekly" : "monthly",
+                      day: Math.min(Math.max(parseInt(r.day, 10) || (bw ? Number(anchor.slice(8, 10)) : 1), 1), 31),
+                      category: String(r.category || "Other"), desc: String(r.desc || ""),
+                      amount: amt, currency: validCurrency(r.currency) ? r.currency : null,
+                      variable: r.variable === true,
+                      startMonth: startMonth,
+                      exceptions: Object.keys(exMonths), exceptionDates: exDates
+                    };
+                    if (bw) doc.anchorDate = anchor;
+                    newTemplates.push(doc);
                   });
                 }
               } else {
@@ -2324,15 +2962,17 @@
                   if (idx === 0 && /date/i.test(r[0] || "")) return;
                   var amt = parseFloat(r[4]);
                   if (r[0] && !isNaN(amt) && amt > 0) {
-                    newEntries.push({
+                    var csvCur = String(r[5] || "").trim().toUpperCase();
+                  newEntries.push({
                       type: (r[1] || "").toLowerCase() === "income" ? "income" : "expense",
                       date: String(r[0]).slice(0, 10), category: r[2] || "Other", desc: r[3] || "",
-                      amount: amt, recurId: null, createdAt: baseTime + idx
+                      amount: amt, currency: validCurrency(csvCur) ? csvCur : null,
+                      recurId: null, createdAt: baseTime + idx
                     });
                   }
                 });
               }
-              if (!newEntries.length) { showImportMsg("No entries found in that file — nothing was imported.", true); return; }
+              if (!newEntries.length && !newTemplates.length) { showImportMsg("No entries found in that file — nothing was imported.", true); return; }
               var chain = Promise.resolve();
               for (var i = 0; i < newEntries.length; i += 450) {
                 (function (chunk) {
@@ -2343,8 +2983,21 @@
                   });
                 })(newEntries.slice(i, i + 450));
               }
+              if (newTemplates.length) {
+                chain = chain.then(function () {
+                  return Promise.all(newTemplates.map(function (doc) {
+                    doc.ownerUid = me.uid;
+                    doc.familyId = profile.familyId || null;
+                    if (!validCurrency(doc.currency)) doc.currency = state.currency;
+                    doc.active = true;
+                    return db.collection("recurring").add(doc);
+                  }));
+                });
+              }
               chain.then(function () {
-                showImportMsg("Imported " + newEntries.length + (newEntries.length === 1 ? " entry." : " entries."), false);
+                var msg = "Imported " + newEntries.length + (newEntries.length === 1 ? " entry." : " entries.");
+                if (newTemplates.length) msg += " " + newTemplates.length + (newTemplates.length === 1 ? " repeating entry was" : " repeating entries were") + " restored — they carry on from next month.";
+                showImportMsg(msg, false);
                 render();
               }).catch(function () {
                 showImportMsg("Those entries couldn't be saved just now — check your connection and try again.", true);
