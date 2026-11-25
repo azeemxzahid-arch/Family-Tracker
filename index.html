@@ -310,6 +310,21 @@
       .rate-row .rate-cur { font-weight: 700; color: var(--ink-soft); }
       .rate-note { background: var(--amber-tint); border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; margin: 8px 0 0; }
 
+      /* ---------- Accounts ---------- */
+      .accounts-card { margin-bottom: 18px; }
+      .acct-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; align-items: start; margin-bottom: 10px; }
+      .acct-row .aname { font-weight: 700; }
+      .acct-row .ctag { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 2px 9px; }
+      .acct-row .ameta { color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+      .acct-row .abalance { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; font-size: 1.05rem; }
+      .acct-row .alabel { font-size: 0.85rem; color: var(--muted); text-align: right; margin-top: 2px; }
+      .acct-actions { display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end; }
+      .acct-actions button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; min-height: 2.25rem; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+      .acct-actions button:hover { background: var(--surface-2); }
+      .acct-actions button.del-acct { color: var(--red); }
+      .acct-form-title { font-size: 1rem; margin: 18px 0 10px; }
+      .tx .acct { background: var(--green-tint); color: var(--green-dark); border-radius: 99px; padding: 1px 9px; font-weight: 600; }
+
       /* ---------- Recurring, categories, compare, save status ---------- */
       .check-field { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
       .check-field input { width: 22px; height: 22px; min-height: 22px; margin: 1px 0 0; accent-color: var(--green); flex: 0 0 auto; }
@@ -611,6 +626,49 @@
       </section>
       <p class="totals-note" id="monitorNote" hidden></p>
 
+      <section class="card accounts-card" id="accountsCard" aria-labelledby="accountsTitle">
+        <h2 id="accountsTitle">Accounts</h2>
+        <p class="hint">Your bank accounts, savings, credit cards and cash. A balance carries from month to month: it starts from the opening balance and follows every entry you've assigned to the account since.</p>
+        <div id="accountsList"></div>
+        <div id="acctNotes"></div>
+        <form id="accountForm" novalidate>
+          <h3 class="acct-form-title" id="acctFormTitle">Add an account</h3>
+          <div class="field-row">
+            <div class="field">
+              <label for="acctName">Account name</label>
+              <input type="text" id="acctName" placeholder="e.g. TD Chequing" maxlength="40" />
+            </div>
+            <div class="field">
+              <label for="acctType">Type</label>
+              <select id="acctType">
+                <option value="Bank">Bank</option>
+                <option value="Savings">Savings</option>
+                <option value="Credit card">Credit card</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="acctCurrency">Currency</label>
+              <select id="acctCurrency"></select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="acctOpening" id="acctOpeningLabel">Opening balance</label>
+              <input type="number" id="acctOpening" step="0.01" inputmode="decimal" placeholder="0.00" />
+            </div>
+            <div class="field">
+              <label for="acctMonth">Starting month</label>
+              <input type="month" id="acctMonth" />
+            </div>
+            <div class="field"></div>
+          </div>
+          <p class="form-error" id="acctError"></p>
+          <button type="submit" class="btn btn-ghost btn-auto" id="acctSaveBtn">Add account</button>
+          <button type="button" class="btn btn-ghost btn-auto" id="acctCancelBtn" hidden>Cancel editing</button>
+        </form>
+      </section>
+
       <section class="card bills-card" aria-labelledby="billsTitle">
         <h2 id="billsTitle">Bills due</h2>
         <p class="hint" id="billsHint">Your repeating bills for the month you're looking at.</p>
@@ -673,6 +731,10 @@
               <div class="field">
                 <label for="entryDesc">Description</label>
                 <input type="text" id="entryDesc" placeholder="e.g. Weekly groceries at FreshCo" maxlength="90" />
+              </div>
+              <div class="field">
+                <label for="entryAccount" id="accountLabel">Paid from</label>
+                <select id="entryAccount" aria-label="Account for this entry"></select>
               </div>
               <div class="check-field">
                 <input type="checkbox" id="entryRecurring" />
@@ -847,6 +909,105 @@
         }
         function convAmt(amount, rate) { return Math.round(amount * rate * 100) / 100; }
 
+        // ---------- Accounts ----------
+        // An account is a pot of money the user tracks a balance for: a bank
+        // account, savings, a credit card or cash. Accounts live on the
+        // profile (and in the family mirror copy), never as their own docs.
+        var ACCOUNT_TYPES = ["Bank", "Savings", "Credit card", "Cash"];
+        // Tidy an accounts list read from a profile, a mirror or a backup:
+        // known types only, real currencies only, numbers as numbers, and
+        // no duplicate ids. Anything unusable is dropped, never guessed at.
+        function cleanAccounts(list, fallbackCur) {
+          var out = [];
+          if (!Array.isArray(list)) return out;
+          list.forEach(function (a) {
+            if (!a || typeof a !== "object") return;
+            var id = typeof a.id === "string" && a.id ? a.id : null;
+            if (!id) return;
+            var dupe = false;
+            out.forEach(function (x) { if (x.id === id) dupe = true; });
+            if (dupe) return;
+            var ob = parseFloat(a.openingBalance);
+            out.push({
+              id: id,
+              name: String(a.name || "Account").slice(0, 60) || "Account",
+              type: ACCOUNT_TYPES.indexOf(a.type) !== -1 ? a.type : "Bank",
+              currency: validCurrency(a.currency) ? a.currency : (validCurrency(fallbackCur) ? fallbackCur : "CAD"),
+              openingBalance: isNaN(ob) ? 0 : Math.round(ob * 100) / 100,
+              openingMonth: /^\d{4}-\d{2}$/.test(String(a.openingMonth || "")) ? String(a.openingMonth) : monthKey(today)
+            });
+          });
+          return out;
+        }
+        function findAccount(id) {
+          var found = null;
+          state.accounts.forEach(function (a) { if (a.id === id) found = a; });
+          return found;
+        }
+        // The name an entry's account shows as: the account's current name
+        // when it still exists (so renaming an account renames it on old
+        // entries too), otherwise the name saved on the entry itself.
+        function resolveAccountLabel(t, list) {
+          if (!t) return null;
+          if (t.accountId && list) {
+            var found = null;
+            list.forEach(function (a) { if (a.id === t.accountId) found = a; });
+            if (found) return found.name;
+          }
+          return t.accountName || null;
+        }
+        // CSV backups carry only an account NAME (the last column); match
+        // it back to one of my accounts by name, case-insensitively.
+        function accountIdByName(name) {
+          var n = String(name || "").trim().toLowerCase();
+          if (!n) return null;
+          var found = null;
+          state.accounts.forEach(function (a) { if (a.name.toLowerCase() === n) found = a.id; });
+          return found;
+        }
+        // Change an amount between two currencies at the viewer's saved
+        // rates (through the viewer's own currency). Returns null when a
+        // rate needed for the change hasn't been set.
+        function convBetween(amount, fromCur, toCur) {
+          if (fromCur === toCur) return Math.round(amount * 100) / 100;
+          var rf = rateFor(fromCur), rt = rateFor(toCur);
+          if (rf === null || rt === null) return null;
+          return Math.round(amount * rf / rt * 100) / 100;
+        }
+        // An account's balance at the END of the viewed month: the opening
+        // balance plus every entry assigned to the account from its opening
+        // month through the viewed month — income adds, expenses take away,
+        // each changed into the account's own currency at the viewer's
+        // rates. Entries before the opening month never count. An entry
+        // whose currency can't be changed into the account's currency is
+        // left out and its currency reported in `missing`, so the screen
+        // can say so instead of showing a quietly wrong figure. `skipFn`,
+        // when given, drops entries before any of that (the family owner
+        // uses it for entries he excluded from his Combined view — the
+        // member's own view always counts all of their entries).
+        function accountBalance(acct, entries, fallbackCur, skipFn) {
+          var bal = acct.openingBalance || 0;
+          var missing = [];
+          entries.forEach(function (t) {
+            if (!t.accountId || t.accountId !== acct.id) return;
+            var mk = String(t.date || "").slice(0, 7);
+            if (mk < acct.openingMonth || mk > state.month) return;
+            if (skipFn && skipFn(t)) return;
+            var cur = entryCur(t, fallbackCur);
+            var amt = convBetween(t.amount, cur, acct.currency);
+            if (amt === null) { if (missing.indexOf(cur) === -1) missing.push(cur); return; }
+            bal += t.type === "income" ? amt : -amt;
+          });
+          return { balance: Math.round(bal * 100) / 100, missing: missing };
+        }
+        // How an account's figure is presented: a credit card reads as an
+        // amount owing (its stored balance runs negative as you spend);
+        // everything else reads as a balance.
+        function accountFigure(acct, balance) {
+          if (acct.type === "Credit card") return { value: -balance, label: "owing" };
+          return { value: balance, label: "balance" };
+        }
+
         var today = new Date();
         function pad(n) { return (n < 10 ? "0" : "") + n; }
         function monthKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
@@ -928,6 +1089,7 @@
           rates: {},
           memberTotals: {},
           excludedEntries: [],
+          accounts: [],
           lastExportAt: 0
         };
         EXPENSE_CATS.forEach(function (c) { state.budgets[c] = 0; });
@@ -972,6 +1134,7 @@
               budgets: budgets,
               customExpenseCats: mir.customExpenseCats || [],
               customIncomeCats: mir.customIncomeCats || [],
+              accounts: cleanAccounts(mir.accounts, validCurrency(mir.currency) ? mir.currency : "CAD"),
               transactions: byUid[u] || []
             });
           });
@@ -1004,11 +1167,17 @@
           typeExpense: $("typeExpense"), typeIncome: $("typeIncome"),
           form: $("entryForm"), entryDate: $("entryDate"), entryAmount: $("entryAmount"),
           entryCurrency: $("entryCurrency"),
+          entryAccount: $("entryAccount"), accountLabel: $("accountLabel"),
           entryCategory: $("entryCategory"), entryDesc: $("entryDesc"),
           formError: $("formError"), submitBtn: $("submitBtn"), cancelEdit: $("cancelEdit"),
           budgetList: $("budgetList"), breakdown: $("breakdown"),
           txList: $("txList"), txEmpty: $("txEmpty"), txSearch: $("txSearch"), txFilter: $("txFilter"),
           exclBar: $("exclBar"), showExcludedBtn: $("showExcludedBtn"),
+          accountsCard: $("accountsCard"), accountsList: $("accountsList"), acctNotes: $("acctNotes"),
+          accountForm: $("accountForm"), acctFormTitle: $("acctFormTitle"), acctName: $("acctName"),
+          acctType: $("acctType"), acctCurrency: $("acctCurrency"), acctOpening: $("acctOpening"),
+          acctOpeningLabel: $("acctOpeningLabel"), acctMonth: $("acctMonth"), acctSaveBtn: $("acctSaveBtn"),
+          acctCancelBtn: $("acctCancelBtn"), acctError: $("acctError"),
           importMsg: $("importMsg"),
           viewPersonal: $("viewPersonal"), viewCombined: $("viewCombined"), viewNote: $("viewNote"),
           familyHint: $("familyHint"), familyMsg: $("familyMsg"),
@@ -1049,6 +1218,8 @@
         currencyOptions(els.suCurrency, "CAD");
         currencyOptions(els.currencySelect, "CAD");
         currencyOptions(els.entryCurrency, "CAD");
+        currencyOptions(els.acctCurrency, "CAD");
+        els.acctMonth.value = monthKey(today);
 
         // ---------- Sync status ----------
         var lastSyncAt = 0;
@@ -1150,10 +1321,18 @@
         // Merged transactions for the selected month, each tagged with its owner.
         function activeTxs() {
           var out = [];
-          monthTxs().forEach(function (t) { out.push(tagTx(t, myName(), true, state.currency)); });
+          monthTxs().forEach(function (t) {
+            var x = tagTx(t, myName(), true, state.currency);
+            x.accountLabel = resolveAccountLabel(t, state.accounts);
+            out.push(x);
+          });
           if (isCombined()) family.forEach(function (m) {
             m.transactions.forEach(function (t) {
-              if (t.date.slice(0, 7) === state.month) out.push(tagTx(t, m.name, false, m.currency, countsInTotals(m.uid), isExcluded(t.id)));
+              if (t.date.slice(0, 7) === state.month) {
+                var y = tagTx(t, m.name, false, m.currency, countsInTotals(m.uid), isExcluded(t.id));
+                y.accountLabel = resolveAccountLabel(t, m.accounts);
+                out.push(y);
+              }
             });
           });
           return out;
@@ -1224,14 +1403,16 @@
           if (!profile || !profile.familyId) return Promise.resolve();
           return mirrorRef().set({
             name: state.name, currency: state.currency, budgets: state.budgets,
-            customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats
+            customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats,
+            accounts: state.accounts
           }).catch(function () { /* offline — Firestore queues it */ });
         }
         function saveProfile(patch) {
           for (var k in patch) profile[k] = patch[k];
           var p = profileRef().update(patch).catch(function () { /* queued offline */ });
           if ("name" in patch || "currency" in patch || "budgets" in patch ||
-              "customExpenseCats" in patch || "customIncomeCats" in patch) writeMirror();
+              "customExpenseCats" in patch || "customIncomeCats" in patch ||
+              "accounts" in patch) writeMirror();
           return p;
         }
         function entryDocData(t) {
@@ -1241,6 +1422,8 @@
             type: t.type, date: t.date, category: t.category, desc: t.desc,
             amount: t.amount, currency: validCurrency(t.currency) ? t.currency : state.currency,
             recurringId: t.recurId || null,
+            accountId: t.accountId || null,
+            accountName: t.accountName || null,
             estimated: !!t.estimated,
             createdAt: t.createdAt || Date.now()
           };
@@ -1277,7 +1460,7 @@
                   if (!existsB) {
                     var instB = {
                       type: tpl.type, date: date, category: tpl.category,
-                      desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, recurId: tpl.id, createdAt: Date.now(),
+                      desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, accountId: tpl.accountId || null, accountName: tpl.accountName || null, recurId: tpl.id, createdAt: Date.now(),
                       estimated: !!tpl.variable
                     };
                     jobs.push(db.collection("entries").doc("rec_" + tpl.id + "_" + date).set(entryDocData(instB)));
@@ -1299,7 +1482,7 @@
                   var day = Math.min(tpl.day, daysInMonth(key));
                   var inst = {
                     type: tpl.type, date: key + "-" + pad(day), category: tpl.category,
-                    desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, recurId: tpl.id, createdAt: Date.now(),
+                    desc: tpl.desc, amount: tpl.amount, currency: tpl.currency, accountId: tpl.accountId || null, accountName: tpl.accountName || null, recurId: tpl.id, createdAt: Date.now(),
                     // A varying bill's auto-added entry is only the usual amount —
                     // it stays flagged "Estimated" until the owner types the real one.
                     estimated: !!tpl.variable
@@ -1397,7 +1580,7 @@
           return {
             name: name, email: me.email || "", currency: currency, budgets: budgets,
             customExpenseCats: [], customIncomeCats: [], rates: {}, memberTotals: {},
-            excludedEntries: [],
+            excludedEntries: [], accounts: [],
             familyId: null, isFamilyOwner: false, lastExportAt: 0
           };
         }
@@ -1435,6 +1618,8 @@
             state.budgets[k] = isNaN(v) || v < 0 ? 0 : v;
           }
           state.rates = profile.rates || {};
+          state.accounts = cleanAccounts(profile.accounts, state.currency);
+          acctSig = "";
           state.memberTotals = {};
           if (profile.memberTotals) for (var mk in profile.memberTotals) {
             if (profile.memberTotals[mk] === false) state.memberTotals[mk] = false;
@@ -1469,6 +1654,8 @@
             category: String(t.category || "Other"), desc: String(t.desc || ""),
             amount: parseFloat(t.amount) || 0, currency: validCurrency(t.currency) ? t.currency : null,
             recurId: t.recurringId || null,
+            accountId: t.accountId ? String(t.accountId) : null,
+            accountName: t.accountName ? String(t.accountName) : null,
             estimated: t.estimated === true,
             createdAt: t.createdAt || 0
           };
@@ -1487,6 +1674,8 @@
             startMonth: String(r.startMonth || "").slice(0, 7),
             exceptions: Array.isArray(r.exceptions) ? r.exceptions.slice() : [],
             exceptionDates: Array.isArray(r.exceptionDates) ? r.exceptionDates.slice() : [],
+            accountId: r.accountId ? String(r.accountId) : null,
+            accountName: r.accountName ? String(r.accountName) : null,
             variable: r.variable === true, active: r.active !== false
           };
         }
@@ -1638,6 +1827,7 @@
           els.typeExpense.setAttribute("aria-pressed", type === "expense" ? "true" : "false");
           els.typeIncome.setAttribute("aria-pressed", type === "income" ? "true" : "false");
           fillCategories();
+          els.accountLabel.textContent = type === "income" ? "Received into" : "Paid from";
           if (!editingId) els.submitBtn.textContent = type === "income" ? "Add income" : "Add expense";
         }
         els.typeExpense.addEventListener("click", function () { setType("expense"); });
@@ -1737,6 +1927,8 @@
           renderFamily();
           renderMonitorNote();
           renderMyRates();
+          renderAccounts();
+          fillAccounts();
           renderAlert(spent, budgets);
           renderBills();
           renderBudgets(spent, budgets);
@@ -1866,6 +2058,7 @@
             var ownerHtml = combined ? '<span class="owner-chip">' + esc(t.owner || "") + "</span>" : "";
             var monthlyHtml = t.recurId ? '<span class="chip monthly">' + (templateIsBiweekly(t.recurId) ? "Every 2 weeks" : "Monthly") + "</span>" : "";
             var estHtml = t.estimated ? '<span class="chip estimated">Estimated</span>' : "";
+            var acctHtml = t.accountLabel ? '<span class="acct">' + esc(t.accountLabel) + "</span>" : "";
             // The amount as entered, in its own currency. When that's not the
             // viewer's currency, the changed-into value rides underneath —
             // or a plain note when there's no rate yet and it isn't totalled.
@@ -1887,7 +2080,7 @@
             return '<li class="tx' + (t.excluded ? " excluded" : "") + '" data-id="' + esc(t.id) + '">' +
               '<div><div class="desc">' + esc(t.desc || t.category) + '</div>' +
               '<div class="meta"><span>' + prettyDate(t.date) + '</span><span class="cat">' + esc(t.category) + "</span>" +
-              "<span>" + (t.type === "income" ? "Income" : "Expense") + "</span>" + monthlyHtml + estHtml + ownerHtml + "</div></div>" +
+              "<span>" + (t.type === "income" ? "Income" : "Expense") + "</span>" + monthlyHtml + estHtml + acctHtml + ownerHtml + "</div></div>" +
               '<div class="amt ' + (t.type === "income" ? "in" : "out") + '">' + amtHtml + "</div>" +
               actions + "</li>";
           }).join("");
@@ -2158,6 +2351,186 @@
         els.catAddBtn.addEventListener("click", addCustomCat);
         els.catName.addEventListener("keydown", function (ev) { if (ev.key === "Enter") { ev.preventDefault(); addCustomCat(); } });
 
+        // ---------- Accounts UI ----------
+        // The entry form's Account dropdown: my accounts, plus "No account".
+        // Rebuilt only when the accounts (or the entry being edited) change,
+        // so a background sync can't disturb someone mid-entry. An entry
+        // being edited whose account has since been deleted keeps an option
+        // under its saved name, so saving the edit doesn't silently unlink it.
+        var acctSig = "";
+        function fillAccounts() {
+          var editTx = editingId ? findEntry(editingId) : null;
+          var sig = state.accounts.map(function (a) { return a.id + "|" + a.name + "|" + a.type + "|" + a.currency; }).join(";") +
+            "#" + (editTx && editTx.accountId ? editTx.accountId : "");
+          if (sig === acctSig) return;
+          acctSig = sig;
+          var cur = els.entryAccount.value;
+          var opts = ['<option value="">No account</option>'];
+          state.accounts.forEach(function (a) {
+            opts.push('<option value="' + esc(a.id) + '">' + esc(a.name) + " (" + esc(a.type) + " · " + esc(a.currency) + ")</option>");
+          });
+          if (editTx && editTx.accountId && !findAccount(editTx.accountId)) {
+            opts.push('<option value="' + esc(editTx.accountId) + '">' + esc(editTx.accountName || "Account") + "</option>");
+          }
+          els.entryAccount.innerHTML = opts.join("");
+          var ok = cur === "";
+          state.accounts.forEach(function (a) { if (a.id === cur) ok = true; });
+          if (editTx && editTx.accountId === cur) ok = true;
+          els.entryAccount.value = ok ? cur : "";
+        }
+        els.entryAccount.addEventListener("change", function () {
+          var a = findAccount(this.value);
+          if (a) {
+            els.entryCurrency.value = a.currency;
+            els.amountLabel.textContent = "Amount (" + CURR[a.currency].sym + ")";
+          }
+        });
+        // One person's accounts with their balances for the viewed month,
+        // for the Combined view's members list. Amounts show in the
+        // account's own currency first; when the owner's currency differs
+        // and a rate is set, the changed-into figure rides along — display
+        // only. Account balances never join the family totals: a balance
+        // is what's sitting there, not money in or out.
+        function memberAccountsHtml(accounts, entries, fallbackCur, skipFn) {
+          if (!accounts || !accounts.length) return "";
+          var parts = [];
+          var notes = [];
+          accounts.forEach(function (acct) {
+            var res = accountBalance(acct, entries, fallbackCur, skipFn);
+            var fig = accountFigure(acct, res.balance);
+            var s = "<span>" + esc(acct.name) + " — " + fig.label + " <b>" + fmtFor(acct.currency).format(fig.value) + "</b>";
+            if (acct.currency !== state.currency) {
+              var rate = rateFor(acct.currency);
+              if (rate !== null) s += " (≈ " + fmt.format(convAmt(fig.value, rate)) + ")";
+            }
+            s += "</span>";
+            parts.push(s);
+            res.missing.forEach(function (c) {
+              notes.push('<div class="mnums"><span>' + esc(acct.name) + ": an entry in " + c + " isn't in this balance — no exchange rate set for " + c + ".</span></div>");
+            });
+          });
+          return '<div class="mnums">' + parts.join("") + "</div>" + notes.join("");
+        }
+        // The Accounts card (my view only — in Combined view the members
+        // list carries everyone's balances, and accounts are managed from
+        // "Just me", like budgets).
+        function renderAccounts() {
+          var combined = isCombined();
+          els.accountsCard.hidden = combined;
+          if (combined) return;
+          if (!state.accounts.length) {
+            els.accountsList.innerHTML = '<p class="empty">No accounts yet — add your first one below, and it will show here with its balance for the month you\'re looking at.</p>';
+            els.acctNotes.innerHTML = "";
+            return;
+          }
+          var notes = [];
+          els.accountsList.innerHTML = state.accounts.map(function (acct) {
+            var res = accountBalance(acct, myEntries, state.currency, null);
+            res.missing.forEach(function (c) {
+              notes.push('<p class="rate-note">An entry in ' + c + " isn't in " + esc(acct.name) + "'s balance — no exchange rate set for " + c + ".</p>");
+            });
+            var fig = accountFigure(acct, res.balance);
+            var opened = acct.type === "Credit card"
+              ? "Started owing " + fmtFor(acct.currency).format(-acct.openingBalance) + " in " + monthLabel(acct.openingMonth)
+              : "Opening balance " + fmtFor(acct.currency).format(acct.openingBalance) + " in " + monthLabel(acct.openingMonth);
+            return '<div class="acct-row"><div>' +
+              '<span class="aname">' + esc(acct.name) + '</span> <span class="ctag">' + esc(acct.type) + " · " + esc(acct.currency) + "</span>" +
+              '<div class="ameta">' + esc(opened) + "</div></div>" +
+              '<div><div class="abalance">' + fmtFor(acct.currency).format(fig.value) + "</div>" +
+              '<div class="alabel">' + fig.label + " at end of " + esc(monthLabel(state.month)) + "</div>" +
+              '<div class="acct-actions"><button type="button" class="edit-acct" data-id="' + esc(acct.id) + '">Edit</button>' +
+              '<button type="button" class="del-acct" data-id="' + esc(acct.id) + '">Delete</button></div></div></div>';
+          }).join("");
+          els.acctNotes.innerHTML = notes.join("");
+          var eb = els.accountsList.querySelectorAll(".edit-acct");
+          for (var i = 0; i < eb.length; i++) eb[i].addEventListener("click", function () { startEditAccount(this.getAttribute("data-id")); });
+          var dbtns = els.accountsList.querySelectorAll(".del-acct");
+          for (var j = 0; j < dbtns.length; j++) dbtns[j].addEventListener("click", function () { deleteAccount(this.getAttribute("data-id")); });
+        }
+        var editingAccountId = null;
+        var acctPrevType = "Bank";
+        function newAccountId() {
+          return "a" + Date.now().toString(36) + Math.floor(Math.random() * 1679616).toString(36);
+        }
+        function resetAccountForm() {
+          editingAccountId = null;
+          els.acctName.value = "";
+          els.acctType.value = "Bank";
+          acctPrevType = "Bank";
+          els.acctOpeningLabel.textContent = "Opening balance";
+          els.acctCurrency.value = state.currency;
+          els.acctOpening.value = "";
+          els.acctMonth.value = monthKey(today);
+          els.acctFormTitle.textContent = "Add an account";
+          els.acctSaveBtn.textContent = "Add account";
+          els.acctCancelBtn.hidden = true;
+          showFormError(els.acctError, "");
+        }
+        function startEditAccount(id) {
+          var a = findAccount(id);
+          if (!a) return;
+          editingAccountId = id;
+          els.acctName.value = a.name;
+          els.acctType.value = a.type;
+          acctPrevType = a.type;
+          els.acctOpeningLabel.textContent = a.type === "Credit card" ? "Opening amount owing" : "Opening balance";
+          els.acctCurrency.value = a.currency;
+          els.acctOpening.value = a.type === "Credit card" ? String(-a.openingBalance) : String(a.openingBalance);
+          els.acctMonth.value = a.openingMonth;
+          els.acctFormTitle.textContent = "Edit account";
+          els.acctSaveBtn.textContent = "Save changes";
+          els.acctCancelBtn.hidden = false;
+          showFormError(els.acctError, "");
+        }
+        function deleteAccount(id) {
+          state.accounts = state.accounts.filter(function (a) { return a.id !== id; });
+          if (editingAccountId === id) resetAccountForm();
+          profile.accounts = state.accounts;
+          saveProfile({ accounts: state.accounts });
+          render();
+        }
+        els.acctType.addEventListener("change", function () {
+          var nowCard = this.value === "Credit card";
+          var wasCard = acctPrevType === "Credit card";
+          if (nowCard !== wasCard) {
+            // The opening figure means "balance" for most accounts and
+            // "amount owing" for a card — flip its sign so the same money
+            // is meant after the switch.
+            var v = parseFloat(els.acctOpening.value);
+            if (!isNaN(v) && v !== 0) els.acctOpening.value = String(-v);
+          }
+          acctPrevType = this.value;
+          els.acctOpeningLabel.textContent = nowCard ? "Opening amount owing" : "Opening balance";
+        });
+        els.accountForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var name = els.acctName.value.trim();
+          if (!name) { showFormError(els.acctError, "Give the account a name first."); return; }
+          var type = els.acctType.value;
+          var entered = parseFloat(els.acctOpening.value);
+          if (isNaN(entered)) entered = 0;
+          // A card's opening is typed as what was owing and stored as the
+          // (negative) balance the maths runs on; other accounts store
+          // the balance as typed.
+          var acct = {
+            id: editingAccountId || newAccountId(),
+            name: name.slice(0, 60), type: type,
+            currency: validCurrency(els.acctCurrency.value) ? els.acctCurrency.value : state.currency,
+            openingBalance: Math.round((type === "Credit card" ? -entered : entered) * 100) / 100,
+            openingMonth: /^\d{4}-\d{2}$/.test(els.acctMonth.value) ? els.acctMonth.value : monthKey(today)
+          };
+          if (editingAccountId) {
+            state.accounts = state.accounts.map(function (a) { return a.id === editingAccountId ? acct : a; });
+          } else {
+            state.accounts.push(acct);
+          }
+          profile.accounts = state.accounts;
+          saveProfile({ accounts: state.accounts });
+          resetAccountForm();
+          render();
+        });
+        els.acctCancelBtn.addEventListener("click", function () { resetAccountForm(); });
+
         // ---------- Backup nudge ----------
         var nudgeDismissed = false;
         function updateNudge() {
@@ -2280,7 +2653,8 @@
           var mine = statsConverted(myEntries, state.currency, state.currency);
           rows.push('<div class="member-row"><div>' +
             '<span class="mname">' + esc(myName()) + '</span><span class="mtag">You</span>' +
-            memberNumsHtml(mine, function (v) { return fmt.format(v); }) + "</div><div></div></div>");
+            memberNumsHtml(mine, function (v) { return fmt.format(v); }) +
+            memberAccountsHtml(state.accounts, myEntries, state.currency, null) + "</div><div></div></div>");
           family.forEach(function (m) {
             var cur = validCurrency(m.currency) ? m.currency : "CAD";
             var counted = countsInTotals(m.uid);
@@ -2302,6 +2676,7 @@
               html += '<div class="mnums"><span>' + esc(m.name) + "'s entries in " + esc(excl.join(", ")) +
                 " aren't in these totals yet — set the exchange rate" + (excl.length > 1 ? "s" : "") + " above to include them.</span></div>";
             }
+            html += memberAccountsHtml(m.accounts, m.transactions, cur, function (t) { return isExcluded(t.id); });
             html += '</div><div><button type="button" class="member-toggle" data-uid="' + esc(m.uid) + '" aria-pressed="' + (counted ? "true" : "false") + '">' +
               (counted ? "Count in my totals" : "Just monitor") + "</button></div></div>";
             rows.push(html);
@@ -2610,7 +2985,8 @@
             frequency: biweekly ? "biweekly" : "monthly",
             category: data.category, desc: data.desc, amount: data.amount,
             variable: !!data.variable,
-            currency: validCurrency(data.currency) ? data.currency : state.currency, active: true,
+            currency: validCurrency(data.currency) ? data.currency : state.currency,
+            accountId: data.accountId || null, accountName: data.accountName || null, active: true,
             startMonth: (anchor || data.date).slice(0, 7), exceptions: [], exceptionDates: []
           };
           if (anchor) doc.anchorDate = anchor;
@@ -2663,6 +3039,12 @@
             desc: els.entryDesc.value.trim(), amount: Math.round(amount * 100) / 100,
             currency: validCurrency(els.entryCurrency.value) ? els.entryCurrency.value : state.currency
           };
+          var selAcctId = els.entryAccount.value || null;
+          var selAcct = selAcctId ? findAccount(selAcctId) : null;
+          var prevTx = editingId ? findEntry(editingId) : null;
+          data.accountId = selAcctId;
+          data.accountName = selAcct ? selAcct.name
+            : (prevTx && prevTx.accountId === selAcctId ? (prevTx.accountName || null) : null);
           var wantsRepeat = els.entryRecurring.checked;
           data.variable = wantsRepeat && els.entryVariable.checked;
           data.frequency = wantsRepeat && els.freqBiweekly.checked ? "biweekly" : "monthly";
@@ -2671,6 +3053,7 @@
             els.entryDesc.value = "";
             els.entryAmount.value = "";
             els.entryCurrency.value = state.currency;
+            els.entryAccount.value = "";
             resetRepeatUI();
             els.recurNote.className = "recur-note";
             state.month = data.date.slice(0, 7);
@@ -2694,14 +3077,14 @@
                 .then(function (ref) {
                   return db.collection("entries").doc(entryId).update({
                     type: data.type, date: data.date, category: data.category,
-                    desc: data.desc, amount: data.amount, currency: data.currency, recurringId: ref.id, estimated: false
+                    desc: data.desc, amount: data.amount, currency: data.currency, accountId: data.accountId, accountName: data.accountName, recurringId: ref.id, estimated: false
                   });
                 });
             } else {
               chain = chain.then(function () {
                 return db.collection("entries").doc(entryId).update({
                   type: data.type, date: data.date, category: data.category,
-                  desc: data.desc, amount: data.amount, currency: data.currency, recurringId: null, estimated: false
+                  desc: data.desc, amount: data.amount, currency: data.currency, accountId: data.accountId, accountName: data.accountName, recurringId: null, estimated: false
                 });
               });
             }
@@ -2710,13 +3093,13 @@
             makeTemplateDoc(data).then(function (ref) {
               return addEntry({
                 type: data.type, date: data.date, category: data.category,
-                desc: data.desc, amount: data.amount, currency: data.currency, recurId: ref.id, createdAt: Date.now()
+                desc: data.desc, amount: data.amount, currency: data.currency, accountId: data.accountId, accountName: data.accountName, recurId: ref.id, createdAt: Date.now()
               });
             }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
           } else {
             addEntry({
               type: data.type, date: data.date, category: data.category,
-              desc: data.desc, amount: data.amount, currency: data.currency, recurId: null, createdAt: Date.now()
+              desc: data.desc, amount: data.amount, currency: data.currency, accountId: data.accountId, accountName: data.accountName, recurId: null, createdAt: Date.now()
             }).then(finish).catch(function () { showError("We couldn't save that just now — check your connection and try again."); });
           }
         });
@@ -2731,6 +3114,9 @@
           els.entryCurrency.value = validCurrency(t.currency) ? t.currency : state.currency;
           els.amountLabel.textContent = "Amount (" + CURR[els.entryCurrency.value].sym + ")";
           els.entryDesc.value = t.desc;
+          acctSig = "";
+          fillAccounts();
+          els.entryAccount.value = t.accountId || "";
           resetRepeatUI();
           els.recurNote.className = "recur-note" + (t.recurId ? " show" : "");
           els.submitBtn.textContent = "Save changes";
@@ -2745,6 +3131,7 @@
         function stopEdit() {
           editingId = null;
           els.entryCurrency.value = state.currency;
+          els.entryAccount.value = "";
           els.submitBtn.textContent = formType === "income" ? "Add income" : "Add expense";
           els.cancelEdit.className = "btn btn-ghost btn-cancel";
           resetRepeatUI();
@@ -2771,7 +3158,7 @@
           if (!src) return;
           addEntry({
             type: src.type, date: todayStr(), category: src.category,
-            desc: src.desc, amount: src.amount, currency: src.currency, recurId: null, createdAt: Date.now()
+            desc: src.desc, amount: src.amount, currency: src.currency, accountId: src.accountId || null, accountName: src.accountName || null, recurId: null, createdAt: Date.now()
           }).then(function () {
             state.month = monthKey(today);
             els.monthPicker.value = state.month;
@@ -2805,9 +3192,9 @@
         }
         $("exportBtn").addEventListener("click", function () {
           var payload = {
-            name: state.name, budgets: state.budgets,
+            name: state.name, budgets: state.budgets, accounts: state.accounts,
             transactions: myEntries.map(function (t) {
-              return { type: t.type, date: t.date, category: t.category, desc: t.desc, amount: t.amount, currency: entryCur(t, state.currency) };
+              return { type: t.type, date: t.date, category: t.category, desc: t.desc, amount: t.amount, currency: entryCur(t, state.currency), accountId: t.accountId || null, accountName: t.accountName || null };
             }),
             customExpenseCats: state.customExpenseCats, customIncomeCats: state.customIncomeCats,
             recurring: myRecurring.map(function (r) {
@@ -2817,6 +3204,7 @@
                 type: r.type, day: r.day, category: r.category, desc: r.desc, amount: r.amount,
                 currency: entryCur(r, state.currency),
                 variable: !!r.variable, startMonth: r.startMonth, exceptions: ex,
+                accountId: r.accountId || null, accountName: r.accountName || null,
                 frequency: r.frequency === "biweekly" ? "biweekly" : "monthly",
                 exceptionDates: (r.exceptionDates || []).slice()
               };
@@ -2830,9 +3218,9 @@
           showImportMsg("Backup exported — keep the file somewhere safe.", false);
         });
         $("csvBtn").addEventListener("click", function () {
-          var lines = ["Date,Type,Category,Description,Amount,Currency"];
+          var lines = ["Date,Type,Category,Description,Amount,Currency,Account"];
           myEntries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (t) {
-            lines.push([t.date, t.type, csvCell(t.category), csvCell(t.desc), t.amount.toFixed(2), entryCur(t, state.currency)].join(","));
+            lines.push([t.date, t.type, csvCell(t.category), csvCell(t.desc), t.amount.toFixed(2), entryCur(t, state.currency), csvCell(resolveAccountLabel(t, state.accounts) || "")].join(","));
           });
           download(fileBase() + ".csv", lines.join("\n"), "text/csv");
           stampExport();
@@ -2892,10 +3280,24 @@
                 patch.customExpenseCats = state.customExpenseCats;
                 patch.customIncomeCats = state.customIncomeCats;
                 patch.budgets = state.budgets;
+                // Accounts ride along in the backup too (older backups simply
+                // don't have them). New ones are added by id; ones already
+                // here are kept as they are.
+                if (Array.isArray(data.accounts)) {
+                  var haveAcct = {};
+                  state.accounts.forEach(function (a) { haveAcct[a.id] = true; });
+                  cleanAccounts(data.accounts, state.currency).forEach(function (a) {
+                    if (!haveAcct[a.id]) { state.accounts.push(a); haveAcct[a.id] = true; }
+                  });
+                  patch.accounts = state.accounts;
+                }
+                var validAcctIds = {};
+                state.accounts.forEach(function (a) { validAcctIds[a.id] = a.name; });
                 if (!state.name && data.name) { state.name = String(data.name); patch.name = state.name; }
                 profile.customExpenseCats = state.customExpenseCats;
                 profile.customIncomeCats = state.customIncomeCats;
                 profile.budgets = state.budgets;
+                profile.accounts = state.accounts;
                 saveProfile(patch);
                 if (Array.isArray(data.transactions)) {
                   data.transactions.forEach(function (t, idx) {
@@ -2905,6 +3307,9 @@
                         type: t.type, date: String(t.date).slice(0, 10),
                         category: String(t.category || "Other"), desc: String(t.desc || ""),
                         amount: amt, currency: validCurrency(t.currency) ? t.currency : null,
+                        accountId: typeof t.accountId === "string" && validAcctIds[t.accountId] ? t.accountId : null,
+                        accountName: t.accountName ? String(t.accountName).slice(0, 60)
+                          : (typeof t.accountId === "string" && validAcctIds[t.accountId] ? validAcctIds[t.accountId] : null),
                         recurId: null, createdAt: baseTime + idx
                       });
                     }
@@ -2950,7 +3355,10 @@
                       amount: amt, currency: validCurrency(r.currency) ? r.currency : null,
                       variable: r.variable === true,
                       startMonth: startMonth,
-                      exceptions: Object.keys(exMonths), exceptionDates: exDates
+                      exceptions: Object.keys(exMonths), exceptionDates: exDates,
+                      accountId: typeof r.accountId === "string" && validAcctIds[r.accountId] ? r.accountId : null,
+                      accountName: r.accountName ? String(r.accountName).slice(0, 60)
+                        : (typeof r.accountId === "string" && validAcctIds[r.accountId] ? validAcctIds[r.accountId] : null)
                     };
                     if (bw) doc.anchorDate = anchor;
                     newTemplates.push(doc);
@@ -2967,6 +3375,7 @@
                       type: (r[1] || "").toLowerCase() === "income" ? "income" : "expense",
                       date: String(r[0]).slice(0, 10), category: r[2] || "Other", desc: r[3] || "",
                       amount: amt, currency: validCurrency(csvCur) ? csvCur : null,
+                      accountId: accountIdByName(r[6]), accountName: r[6] ? String(r[6]).slice(0, 60) : null,
                       recurId: null, createdAt: baseTime + idx
                     });
                   }
